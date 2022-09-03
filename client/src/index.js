@@ -3,14 +3,12 @@ const path = require("path");
 const { readFileSync, } = require("fs");
 const axios = require("axios").default;
 
-let window;
-
 if (require("electron-squirrel-startup")) {
 	app.quit();
 }
 
 const createWindow = () => {
-	window = new BrowserWindow({
+	const window = new BrowserWindow({
 		show: false,
 		width: 800,
 		height: 600,
@@ -38,7 +36,7 @@ app.once("ready", () => {
 			cancelId: 0,
 			noLink: true,
 			title: "Mozuli",
-			message: "Couldn't check for updates, continue?",
+			message: "Couldn't check for updates, do you wish to continue?",
 		});
 
 		if (response === 0) {
@@ -75,10 +73,4 @@ app.on("activate", () => {
 	if (BrowserWindow.getAllWindows().length === 0) {
 		createWindow();
 	}
-});
-
-app.once("closed", () => {
-	window = null;
-
-	app.quit();
 });
