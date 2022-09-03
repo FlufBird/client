@@ -1,8 +1,0 @@
-{
-    "development": true,
-    "version": "1.0.0",
-    "servers": {
-        "development": "http://localhost:5000",
-        "production": "https://mozuli-api.deta.dev"
-    }
-}
