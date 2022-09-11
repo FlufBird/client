@@ -1,0 +1,9 @@
+{
+    "general": {
+        "serverOnMaintenance": "The server is undergoing maintenance, try coming back later!"
+    },
+    "updater": {
+        "checkingError": "Couldn't check for updates, do you wish to continue?",
+        "updateAvailable": "Your client (v{{currentVersion}}) is outdated, a new update (v{{latestVersion}}) is available. Do you still wish to continue?"
+    }
+}
