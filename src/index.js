@@ -8,7 +8,7 @@ if (require("electron-squirrel-startup")) {
 	app.quit();
 }
 
-const developmentMode = existsSync("../dev");
+const developmentMode = existsSync("../development");
 
 const applicationData = JSON.parse(readFileSync("resources/data/application.json"));
 const userData = JSON.parse(readFileSync("resources/data/user.json"));
