@@ -1,0 +1,34 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    text-decoration: none;
+}
+
+@font-face {
+    font-family: "regular";
+    src: url("../../resources/fonts/regular.ttf");
+}
+
+@font-face {
+    font-family: "bold";
+    src: url("../../resources/fonts/bold.ttf");
+}
+
+@font-face {
+    font-family: "italic";
+    src: url("../../resources/fonts/italic.ttf");
+}
+
+.container {
+    display: none;
+    font-family: "regular";
+    width: 100%;
+    height: fit-content;
+
+    .hidden {
+        display: none;
+    }
+}
