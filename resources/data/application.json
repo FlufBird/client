@@ -2,8 +2,6 @@
     "version": "1.0.0",
     "languages": {
         "English": "english",
-        "Polskie": "polish",
-        "Русский": "russian",
         "Tiếng Việt": "vietnamese"
     }
 }
