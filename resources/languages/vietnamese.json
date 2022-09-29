@@ -1,1 +1,9 @@
-{}
+{
+    "general": {
+        "serverOnMaintenance": "Máy chủ đang bảo trì, xin vui lòng quay lại sau!"
+    },
+    "updater": {
+        "checkingError": "Không thể kiểm tra phiên bản mới nhất, bạn có muốn tiếp tục không?",
+        "updateAvailable": "Bạn đang sử dụng một phiên bản cũ (v{current_version}), đang có sẵn phiên bản mới (v{latest_version}). Bạn có muốn tiếp tục không?"
+    }
+}
