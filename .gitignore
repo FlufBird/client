@@ -1,4 +1,5 @@
 src/ui/css/dist
+src/ui/js/dist
 
 node_modules
 
