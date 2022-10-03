@@ -8,62 +8,36 @@ const autoprefixer = require("autoprefixer");
 const cssnano = require("cssnano");
 const terser = require("terser");
 
-const cssSourcePath = "../src/ui/css/src";
-const cssDistributePath = "../src/ui/css/dist";
+const cssSourceFile = "../src/ui/style.scss";
+const cssDistributeFile = "../src/ui/style.min.css";
 
-const jsSourcePath = "../src/ui/js/src";
-const jsDistributePath = "../src/ui/js/dist";
+const jsSourceFile = "../src/ui/index.js";
+const jsDistributeFile = "../src/ui/index.min.js";
 
 const cssProcessor = postcss([autoprefixer(), cssnano()]);
 const jsMinifierOptions = JSON.parse(fs.readFileSync(".terserrc.config.json"));
 
-fs.readdir(cssSourcePath, (error, items) => {
-    if (error) {
-        exit(1);
-    }
+const processCss = async () => {
+    const compiled = (await sass.compileAsync(cssSourceFile)).css;
+    const processed = (await cssProcessor.process(compiled)).css;
 
-    items.forEach((item, _) => {
-        const path = `${cssSourcePath}/${item}`;
+    fs.writeFile(cssDistributeFile, processed, (_) => {});
+};
+const minifyJs = async () => {
+    fs.readFile(jsSourceFile, async (error, data) => {
+        if (error) {
+            return;
+        }
 
-        fs.stat(path, async (error, statistics) => {
-            if (error) {
-                return;
-            }
+        const minified = (await terser.minify(data.toString(), jsMinifierOptions)).code;
 
-            if (statistics.isFile()) {
-                const compiled = (await sass.compileAsync(path)).css;
-                const processed = (await cssProcessor.process(compiled)).css;
-
-                fs.writeFile(`${cssDistributePath}/${item.slice(0, -5)}.min.css`, processed, (_) => {});
-            }
-        });
+        fs.writeFile(jsDistributeFile, minified, (_) => {});
     });
-});
+};
 
-fs.readdir(jsSourcePath, (error, items) => {
-    if (error) {
-        exit(1);
-    }
-
-    items.forEach((item, _) => {
-        const path = `${jsSourcePath}/${item}`;
-
-        fs.stat(path, async (error, statistics) => {
-            if (error) {
-                return;
-            }
-
-            if (statistics.isFile()) {
-                fs.readFile(path, async (error, data) => {
-                    if (error) {
-                        return;
-                    }
-
-                    const minified = (await terser.minify(data.toString(), jsMinifierOptions)).code;
-
-                    fs.writeFile(`${jsDistributePath}/${item.slice(0, -3)}.min.js`, minified, (_) => {});
-                });
-            }
-        });
-    });
-});
+(async () => {
+    await processCss();
+})();
+(async () => {
+    await minifyJs();
+})();
