@@ -1,9 +1,11 @@
 extern crate serde_json;
+extern crate reqwest;
 
 use std::{
     process,
     error,
     string,
+    thread,
     path,
     fs,
 };
@@ -18,7 +20,7 @@ fn parse_json(data : &str) -> Result<serde_json::Value, Box<dyn error::Error>> {
 
 fn parse_json_file(path : &str) -> Result<serde_json::Value, Box<dyn error::Error>> {
     let content = read_file(path) ?;
-    let data = parse_json(content.as_str()) ?; // FIXME
+    let data = parse_json(content.as_str()) ?;
 
     Ok(data)
 }
@@ -31,16 +33,18 @@ fn delete_old_version() {
     }
 }
 
-fn check_updates() { // TODO
+fn check_updates() {
 }
 
-fn update() {} // TODO
-
-fn display_dialog(title : &str, message : &str) { // TODO
-
+fn update() {
 }
 
-fn display_critical_error(error : &str) { // TODO
+fn display_dialog(title : &str, message : &str) {
+}
+
+fn display_critical_error(message : &str) {
+    display_dialog("Critical Error", message);
+
     process::exit(1);
 }
 
@@ -49,13 +53,17 @@ fn main() {
 
     let development_mode = path::Path::new("../development").exists();
 
-    let application_data = match parse_json_file("resources/data/application.json") {
-        Ok(data) => data,
-        Err(error) => {
-            display_critical_error("Couldn't parse application data!");
+    let application_data = parse_json_file("resources/data/application.json");
+    let user_data = parse_json_file("resources/data/user.json");
 
-            error // FIXME
-        },
+    match application_data {
+        Ok(_) => (),
+        Err(_) => display_critical_error("Couldn't parse application data."),
+    };
+
+    match user_data {
+        Ok(_) => (),
+        Err(_) => display_critical_error("Couldn't parse user data."),
     };
 
     let server = ((match development_mode {
@@ -63,6 +71,14 @@ fn main() {
         false => "https://mozuli.deta.dev",
     }).to_owned() + "/api/") + API_VERSION;
 
+    let http = reqwest::Client::builder().build();
+
+    match http {
+        Ok(_) => (),
+        Err(_) => display_critical_error("Couldn't build HTTP client."),
+    }
+
     delete_old_version();
-    check_updates();
+
+    // TODO spawn thread to check for updates every 30 seconds
 }
