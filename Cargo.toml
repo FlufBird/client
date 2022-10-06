@@ -2,6 +2,7 @@
 name = "mozuli"
 description = "A Discord-like chatting application that enables you to share your thoughts with other people."
 version = "1.0.0"
+edition = "2021"
 homepage = "https://mozuli.deta.dev"
 repository = "https://github.com/Mozuli/client"
 license = "MIT"
@@ -29,4 +30,4 @@ codegen-units = 1
 
 [dependencies]
 serde_json = "1.0.85"
-reqwest = "0.11.12"
+tauri = {version = "1.1.1", features = ["clipboard", "http-api", "reqwest-client", "dialog", "notification", "system-tray"]}

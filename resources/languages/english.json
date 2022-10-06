@@ -9,7 +9,7 @@
         },
         "dialog": {
             "title": "A New Update is Available!",
-            "message": "Your client is outdated: v{current_version}\nA new update is available: v{latest_version}\n\nDo you wish to update?",
+            "message": "v{latest_version} is available!\nYou're using v{current_version}\n\nDo you wish to update now?",
             "options": {
                 "no": "No",
                 "yes": "Yes"
