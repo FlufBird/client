@@ -1,6 +1,8 @@
 src/ui/style.min.css
 src/ui/index.min.js
 
-node_modules
+resources
+
+build/node_modules
 
 target
