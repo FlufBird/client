@@ -2,13 +2,25 @@ extern crate serde_json;
 extern crate tauri;
 
 use std::{
-    process,
-    error,
-    string,
+    process::{
+        self,
+        exit,
+    },
+    error::Error,
+    string::String,
     thread,
     time::Duration,
     path,
-    fs,
+    fs::{
+        self,
+        File,
+    },
+    io::{
+        Read,
+        Write,
+
+        BufReader,
+    },
 };
 
 use tauri::{
@@ -16,6 +28,55 @@ use tauri::{
         http,
     },
 };
+
+fn open_file(path : &str) -> Result<File, Box<dyn Error>> {
+    Ok(File::open(path) ?)
+}
+
+fn read_file(path : &str) -> Result<String, Box<dyn Error>> {
+    let _file = open_file(path) ?;
+    let mut reader = BufReader::new(_file);
+    let mut content = String::new();
+
+    reader.read_to_string(&mut content) ?;
+
+    Ok(content)
+}
+
+fn write_file(path : &str, content : String) {
+    let __file = open_file(path);
+    let mut _file;
+
+    match __file {
+        Ok(value) => _file = value,
+        Err(_) => return,
+    }
+
+    _file.write_all(content.as_bytes());
+}
+
+fn parse_json(data : &str) -> Result<serde_json::Value, Box<dyn Error>> {
+    Ok(serde_json::from_str(data) ?)
+}
+
+fn parse_json_file(path : &str) -> Result<serde_json::Value, Box<dyn Error>> {
+    let content = read_file(path) ?;
+    let data = parse_json(content.as_str()) ?;
+
+    Ok(data)
+}
+
+fn update_json_file(path : &str, data : &serde_json::Value) {
+    let _content = serde_json::to_string(data);
+    let content;
+
+    match _content {
+        Ok(value) => content = value,
+        Err(_) => return,
+    }
+
+    write_file(path, content);
+}
 
 fn delete_old_version(old_executable : &str) {
     let _path = path::Path::new(old_executable);
@@ -27,30 +88,15 @@ fn delete_old_version(old_executable : &str) {
 
 fn check_instances(application_data : &serde_json::Value, process_id : &String) {
     if application_data["processId"] == process_id.to_string() {
-        process::exit(0);
+        exit(0);
     }
 }
 
 fn write_instance(application_data : &serde_json::Value, process_id : &String) {
-    // TODO: edit "processId" in application_data
+    // TODO: modify application_data["processId"] to process_id
 }
 
-fn read_file(path : &str) -> Result<string::String, Box<dyn error::Error>> {
-    Ok(fs::read_to_string(path) ?)
-}
-
-fn parse_json(data : &str) -> Result<serde_json::Value, Box<dyn error::Error>> {
-    Ok(serde_json::from_str(data) ?)
-}
-
-fn parse_json_file(path : &str) -> Result<serde_json::Value, Box<dyn error::Error>> {
-    let content = read_file(path) ?;
-    let data = parse_json(content.as_str()) ?;
-
-    Ok(data)
-}
-
-async fn send_request(requests : &http::Client, method : &str, url : &str) -> Result<Result<http::Response, tauri::api::Error>, Box<dyn error::Error>> {
+async fn send_request(requests : &http::Client, method : &str, url : &str) -> Result<Result<http::Response, tauri::api::Error>, Box<dyn Error>> {
     let request = http::HttpRequestBuilder::new(method, url) ?;
 
     let response = requests.send(request).await;
@@ -58,28 +104,32 @@ async fn send_request(requests : &http::Client, method : &str, url : &str) -> Re
     Ok(response)
 }
 
-async fn check_updates(application_data : &serde_json::Value, requests : &http::Client, api_update : &String) -> Result<bool, Box<dyn error::Error>> {
+async fn check_updates(application_data : &serde_json::Value, requests : &http::Client, api_update : &String) -> Result<bool, Box<dyn Error>> {
     let latest_version;
 
     match send_request(requests, "get", &(api_update.to_owned() + "/latest_version")).await {
         Ok(response) => latest_version = response,
-        Err(_) => (), // TODO: return error
+        Err(error) => {
+            return Err(error);
+        },
     }
 
-    Ok(false)
+    // TODO: check if latest_version["latestVersion"] == application_data["latestVersion"], if they arent, update()
+
+    Ok(false) // placeholder
 }
 
 fn update() {
 }
 
 fn display_dialog(title : &str, message : &str) {
-    // title form: [title] - Mozuli
+    // title form: {title} - Mozuli
 }
 
 fn display_critical_error(message : &str) {
     display_dialog("Critical Error", message);
 
-    process::exit(1);
+    exit(1);
 }
 
 fn main() {
@@ -142,29 +192,29 @@ fn main() {
 
     let mut check_updates_thread_running = true;
 
-    // thread::spawn(move || async { // FIXME
-    //     let interval = Duration::from_secs(30);
+    thread::spawn(move || async { // FIXME
+        let interval = Duration::from_secs(30);
 
-    //     loop {
-    //         if !check_updates_thread_running {
-    //             break;
-    //         }
+        loop {
+            if !check_updates_thread_running {
+                break;
+            }
 
-    //         match check_updates(&application_data, &requests, &api_update).await {
-    //             Ok(result) => {
-    //                 match result {
-    //                     false => (),
-    //                     true => break,
-    //                 }
-    //             },
-    //             Err(_) => (),
-    //         }
+            match check_updates(&application_data, &requests, &api_update).await {
+                Ok(result) => {
+                    match result {
+                        false => (),
+                        true => break,
+                    }
+                },
+                Err(_) => (),
+            }
 
-    //         thread::sleep(interval);
-    //     }
+            thread::sleep(interval);
+        }
 
-    //     update();
-    // });
+        update();
+    });
 
     check_updates_thread_running = false;
 }
