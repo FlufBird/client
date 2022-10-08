@@ -1,9 +1,13 @@
+// TODO: split this shit into modules
+
 extern crate serde_json;
+extern crate reqwest;
 extern crate tauri;
 
 use std::{
     process::{
         self,
+
         exit,
     },
     error::Error,
@@ -13,6 +17,7 @@ use std::{
     path,
     fs::{
         self,
+
         File,
     },
     io::{
@@ -20,12 +25,6 @@ use std::{
         Write,
 
         BufReader,
-    },
-};
-
-use tauri::{
-    api::{
-        http,
     },
 };
 
@@ -48,11 +47,14 @@ fn write_file(path : &str, content : String) {
     let mut _file;
 
     match __file {
-        Ok(value) => _file = value,
+        Ok(___file) => _file = ___file,
         Err(_) => return,
     }
 
-    _file.write_all(content.as_bytes());
+    match _file.write_all(content.as_bytes()) {
+        Ok(_) => (),
+        Err(_) => (),
+    } // handling errors so rust shuts up
 }
 
 fn parse_json(data : &str) -> Result<serde_json::Value, Box<dyn Error>> {
@@ -71,7 +73,7 @@ fn update_json_file(path : &str, data : &serde_json::Value) {
     let content;
 
     match _content {
-        Ok(value) => content = value,
+        Ok(__content) => content = __content,
         Err(_) => return,
     }
 
@@ -82,7 +84,10 @@ fn delete_old_version(old_executable : &str) {
     let _path = path::Path::new(old_executable);
 
     if _path.exists() {
-        fs::remove_file(_path).ok();
+        match fs::remove_file(_path) {
+            Ok(_) => (),
+            Err(_) => (),
+        }
     }
 }
 
@@ -93,21 +98,25 @@ fn check_instances(application_data : &serde_json::Value, process_id : &String) 
 }
 
 fn write_instance(application_data : &serde_json::Value, process_id : &String) {
-    // TODO: modify application_data["processId"] to process_id
+    // TODO: modify application_data["processId"] to process_id and save to file
 }
 
-async fn send_request(requests : &http::Client, method : &str, url : &str) -> Result<Result<http::Response, tauri::api::Error>, Box<dyn Error>> {
-    let request = http::HttpRequestBuilder::new(method, url) ?;
+fn send_request(requests : &reqwest::blocking::Client, method : &str, url : &str) -> Result<reqwest::blocking::Response, Box<dyn Error>> {
+    let function = match method {
+        "get" => requests.get(url),
+        "post" => requests.post(url),
+        "put" => requests.put(url),
+        "delete" => requests.delete(url),
+        _ => requests.get(url), // this case shouldnt happen
+    };
 
-    let response = requests.send(request).await;
-
-    Ok(response)
+    Ok(function.send() ?)
 }
 
-async fn check_updates(application_data : &serde_json::Value, requests : &http::Client, api_update : &String) -> Result<bool, Box<dyn Error>> {
+fn check_updates(application_data : &serde_json::Value, requests : &reqwest::blocking::Client, api_update : &String) -> Result<bool, Box<dyn Error>> {
     let latest_version;
 
-    match send_request(requests, "get", &(api_update.to_owned() + "/latest_version")).await {
+    match send_request(requests, "get", &(api_update.to_owned() + "/latest_version")) {
         Ok(response) => latest_version = response,
         Err(error) => {
             return Err(error);
@@ -133,17 +142,21 @@ fn display_critical_error(message : &str) {
 }
 
 fn main() {
-    const API_VERSION : &str = "v1";
+    const RESOURCES : &str = "resources";
+
+    let resources_data = RESOURCES.to_owned() + "/data";
 
     const OLD_EXECUTABLE : &str = "mozuli.exe.old";
     const CURRENT_EXECUTABLE : &str = "mozuli.exe";
+
+    const API_VERSION : &str = "v1";
 
     let process_id = (process::id()).to_string();
 
     let development_mode = path::Path::new("../development").exists();
 
-    let _application_data = parse_json_file("resources/data/application.json");
-    let _user_data = parse_json_file("resources/data/user.json");
+    let _application_data = parse_json_file((resources_data.to_owned() + "/application.json").as_str());
+    let _user_data = parse_json_file((resources_data.to_owned() + "/user.json").as_str());
 
     let application_data;
     let user_data;
@@ -167,13 +180,12 @@ fn main() {
         false => "https://mozuli.deta.dev",
     }).to_owned();
 
-    let api = (&server).to_owned() + "/api/" + API_VERSION;
+    let api = server.to_owned() + "/api/" + API_VERSION;
 
     let api_update = api + "/update";
 
-    let _requests = http::ClientBuilder::new()
-        .connect_timeout(Duration::from_secs(10))
-        .max_redirections(0)
+    let _requests = reqwest::blocking::ClientBuilder::new()
+        .timeout(Duration::from_secs(10))
 
         .build();
     let requests;
@@ -190,21 +202,19 @@ fn main() {
 
     delete_old_version(OLD_EXECUTABLE);
 
-    let mut check_updates_thread_running = true;
-
-    thread::spawn(move || async { // FIXME
+    thread::spawn(move || {
         let interval = Duration::from_secs(30);
 
         loop {
-            if !check_updates_thread_running {
-                break;
-            }
-
-            match check_updates(&application_data, &requests, &api_update).await {
+            match check_updates(&application_data, &requests, &api_update) {
                 Ok(result) => {
                     match result {
                         false => (),
-                        true => break,
+                        true => {
+                            thread::spawn(update);
+
+                            break;
+                        },
                     }
                 },
                 Err(_) => (),
@@ -212,9 +222,5 @@ fn main() {
 
             thread::sleep(interval);
         }
-
-        update();
     });
-
-    check_updates_thread_running = false;
 }
