@@ -9,21 +9,12 @@ use std::{
     fs::remove_file,
 };
 
-use super::global::variables::{
-    OLD_EXECUTABLE,
-    CURRENT_EXECUTABLE,
+use super::global::variables;
 
-    CURRENT_VERSION,
-    API_VERSION,
-
-    DEVELOPMENT_MODE,
-
-    PROCESS_ID,
-
-    RESOURCES_DATA,
-
-    APPLICATION_DATA,
-    USER_DATA,
+use tauri::api::dialog::{
+    MessageDialogBuilder,
+    MessageDialogKind,
+    MessageDialogButtons,
 };
 
 fn delete_old_version(old_executable : &str) {
@@ -50,16 +41,14 @@ fn write_instance(application_data : &serde_json::Value, process_id : &String) {
 fn check_updates(current_version : String, requests : &reqwest::blocking::Client, api_update : &String) -> Result<bool, Box<dyn Error>> {
     let latest_version;
 
-    match send_request(requests, "get", &(api_update.to_owned() + "/latest_version")) {
+    match send_request(requests, "get", (api_update.to_owned() + "/latest_version").as_str()) {
         Ok(response) => latest_version = response,
         Err(error) => {
             return Err(error);
         },
     }
 
-    // TODO: check if latest_version["latestVersion"] == "currentVersion", if they arent, update()
-
-    Ok(false) // placeholder
+    Ok(false) // TODO: this is a placeholder, check if latest_version["latestVersion"] == "currentVersion"
 }
 
 fn update() {
@@ -77,37 +66,43 @@ fn send_request(requests : &reqwest::blocking::Client, method : &str, url : &str
     Ok(function.send() ?)
 }
 
-fn display_dialog(title : &str, message : &str) {
-    // title form: {title} - Mozuli
-}
-
-fn display_critical_error(message : &str) {
-    display_dialog("Critical Error", message);
+fn display_critical_error(message : &str) { // this function is only used for displaying critical errors, dialogs for the frontend are shown inside the webview
+    MessageDialogBuilder::new("Critical Error - Mozuli", message)
+        .kind(MessageDialogKind::Error)
+        .buttons(MessageDialogButtons::Ok)
+        .show(|_| {
+            exit(1);
+        }
+    );
 
     exit(1);
 }
 
 pub fn backend() {
-    match APPLICATION_DATA {
+    let global_variables = variables::set();
+
+    let (mut application_data, mut user_data);
+
+    match global_variables.application_data {
         Ok(_) => (),
         Err(_) => display_critical_error("Couldn't retrieve application data."),
-    };
+    }
 
-    let application_data = APPLICATION_DATA.unwrap();
+    application_data = global_variables.application_data.unwrap();
 
-    match USER_DATA {
+    match global_variables.user_data {
         Ok(_) => (),
         Err(_) => display_critical_error("Couldn't retrieve user data."),
-    };
+    }
 
-    let user_data = USER_DATA.unwrap();
+    user_data = global_variables.user_data.unwrap();
 
-    let server = (match DEVELOPMENT_MODE {
+    let server = (match global_variables.development_mode {
         true => "http://localhost:5000",
         false => "https://mozuli.deta.dev",
     }).to_owned();
 
-    let api = server.to_owned() + "/api/" + API_VERSION;
+    let api = server.to_owned() + "/api/" + global_variables.api_version;
 
     let api_update = api + "/update";
 
@@ -122,18 +117,20 @@ pub fn backend() {
         Err(_) => display_critical_error("Couldn't build HTTP client."),
     }
 
-    check_instances(application_data["processId"], &PROCESS_ID);
-    write_instance(&application_data, &PROCESS_ID);
+    check_instances(application_data["processId"].to_string(), &global_variables.process_id);
+    write_instance(&application_data, &global_variables.process_id);
 
     requests = _requests.unwrap();
 
-    delete_old_version(OLD_EXECUTABLE);
+    delete_old_version(global_variables.old_executable);
+
+    // TODO: build the starting window -> main window before checking for updates
 
     thread::spawn(move || {
         let interval = Duration::from_secs(30);
 
         loop {
-            match check_updates(CURRENT_VERSION.to_string(), &requests, &api_update) {
+            match check_updates(global_variables.current_version.to_string(), &requests, &api_update) {
                 Ok(result) => {
                     match result {
                         false => (),

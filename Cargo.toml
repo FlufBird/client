@@ -30,5 +30,5 @@ codegen-units = 1
 
 [dependencies]
 serde_json = "1.0.85"
-reqwest = {version = "0.11.12", features = ["blocking"]}
-tauri = {version = "1.1.1", features = ["clipboard", "http-api", "reqwest-client", "dialog", "notification", "system-tray"]}
+reqwest = {version = "0.11.12", features = ["blocking", "stream"]}
+tauri = {version = "1.1.1", features = ["clipboard", "dialog", "notification", "system-tray"]}
