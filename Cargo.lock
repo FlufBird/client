@@ -163,9 +163,6 @@ name = "bytes"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec8a7b6a70fde80372154c65702f00a0f56f3e1c36abbc6c440484be248856db"
-dependencies = [
- "serde",
-]
 
 [[package]]
 name = "cairo-rs"
@@ -2774,7 +2771,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "efbf22abd61d95ca9b2becd77f9db4c093892f73e8a07d21d8b0b2bf71a7bcea"
 dependencies = [
  "anyhow",
- "bytes",
  "cocoa",
  "dirs-next",
  "embed_plist",
@@ -2793,7 +2789,6 @@ dependencies = [
  "percent-encoding",
  "rand 0.8.5",
  "raw-window-handle",
- "reqwest",
  "rfd",
  "semver 1.0.14",
  "serde",

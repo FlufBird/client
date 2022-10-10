@@ -34,7 +34,7 @@ pub fn set() -> GlobalVariables {
 
     let global_variables = GlobalVariables {
         current_version : "1.0.0",
-        api_version : "v1",
+        api_version : "1",
 
         old_executable : "mozuli.exe.old",
         current_executable : "mozuli.exe",

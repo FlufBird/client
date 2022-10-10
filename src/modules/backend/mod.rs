@@ -9,7 +9,10 @@ use std::{
     fs::remove_file,
 };
 
-use super::global::variables;
+use super::{
+    global::variables,
+    frontend::frontend,
+};
 
 use tauri::api::dialog::{
     MessageDialogBuilder,
@@ -43,12 +46,32 @@ fn check_updates(current_version : String, requests : &reqwest::blocking::Client
 
     match send_request(requests, "get", (api_update.to_owned() + "/latest_version").as_str()) {
         Ok(response) => latest_version = response,
-        Err(error) => {
-            return Err(error);
-        },
+        Err(error) => return Err(error),
     }
 
     Ok(false) // TODO: this is a placeholder, check if latest_version["latestVersion"] == "currentVersion"
+}
+
+fn update_checker(current_version : String, requests : &reqwest::blocking::Client, url : &String) {
+    let interval = Duration::from_secs(30);
+
+    loop {
+        match check_updates(current_version, requests, url) {
+            Ok(result) => {
+                match result {
+                    false => (),
+                    true => {
+                        thread::spawn(update);
+
+                        break;
+                    },
+                }
+            },
+            Err(_) => (),
+        }
+
+        thread::sleep(interval);
+    }
 }
 
 fn update() {
@@ -81,28 +104,24 @@ fn display_critical_error(message : &str) { // this function is only used for di
 pub fn backend() {
     let global_variables = variables::set();
 
-    let (mut application_data, mut user_data);
-
     match global_variables.application_data {
         Ok(_) => (),
         Err(_) => display_critical_error("Couldn't retrieve application data."),
     }
-
-    application_data = global_variables.application_data.unwrap();
 
     match global_variables.user_data {
         Ok(_) => (),
         Err(_) => display_critical_error("Couldn't retrieve user data."),
     }
 
-    user_data = global_variables.user_data.unwrap();
+    // FIXME: unwrap without making a new variable since it has to be global
 
-    let server = (match global_variables.development_mode {
+    let server = match global_variables.development_mode {
         true => "http://localhost:5000",
         false => "https://mozuli.deta.dev",
-    }).to_owned();
+    };
 
-    let api = server.to_owned() + "/api/" + global_variables.api_version;
+    let api = server.to_owned() + "/api" + "/v" + global_variables.api_version;
 
     let api_update = api + "/update";
 
@@ -117,34 +136,14 @@ pub fn backend() {
         Err(_) => display_critical_error("Couldn't build HTTP client."),
     }
 
-    check_instances(application_data["processId"].to_string(), &global_variables.process_id);
-    write_instance(&application_data, &global_variables.process_id);
+    check_instances(global_variables.application_data["processId"].to_string(), &global_variables.process_id);
+    write_instance(&global_variables.application_data, &global_variables.process_id);
 
     requests = _requests.unwrap();
 
     delete_old_version(global_variables.old_executable);
 
-    // TODO: build the starting window -> main window before checking for updates
+    frontend(global_variables);
 
-    thread::spawn(move || {
-        let interval = Duration::from_secs(30);
-
-        loop {
-            match check_updates(global_variables.current_version.to_string(), &requests, &api_update) {
-                Ok(result) => {
-                    match result {
-                        false => (),
-                        true => {
-                            thread::spawn(update);
-
-                            break;
-                        },
-                    }
-                },
-                Err(_) => (),
-            }
-
-            thread::sleep(interval);
-        }
-    });
+    thread::spawn(|| update_checker(global_variables.current_version.to_string(), &requests, &api_update));
 }
