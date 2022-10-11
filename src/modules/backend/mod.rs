@@ -1,5 +1,7 @@
 use std::{
     process::{
+        self,
+
         exit,
     },
     error::Error,
@@ -10,7 +12,7 @@ use std::{
 };
 
 use super::{
-    global::variables,
+    utilities::json::parse_json_file,
     frontend::frontend,
 };
 
@@ -102,26 +104,30 @@ fn display_critical_error(message : &str) { // this function is only used for di
 }
 
 pub fn backend() {
-    let global_variables = variables::set();
+    const RESOURCES : &str = "resources";
 
-    match global_variables.application_data {
-        Ok(_) => (),
-        Err(_) => display_critical_error("Couldn't retrieve application data."),
-    }
+    const CURRENT_VERSION : &str = "1.0.0";
+    const API_VERSION : &str = "1";
 
-    match global_variables.user_data {
-        Ok(_) => (),
-        Err(_) => display_critical_error("Couldn't retrieve user data."),
-    }
+    const OLD_EXECUTABLE : &str = "mozuli.exe.old";
+    const CURRENT_EXECUTABLE : &str = "mozuli.exe";
 
-    // FIXME: unwrap without making a new variable since it has to be global
+    let development_mode = Path::new("../development").exists();
 
-    let server = match global_variables.development_mode {
+    let process_id = (process::id()).to_string();
+
+    let resources_data = (RESOURCES.to_owned() + "/data").to_owned();
+    let resources_languages = (RESOURCES.to_owned() + "/languages").to_owned();
+
+    let _application_data = parse_json_file(((&resources_data).to_owned() + "/application.json").as_str());
+    let _user_data = parse_json_file(((&resources_languages).to_owned() + "/user.json").as_str());
+
+    let server = match development_mode {
         true => "http://localhost:5000",
         false => "https://mozuli.deta.dev",
     };
 
-    let api = server.to_owned() + "/api" + "/v" + global_variables.api_version;
+    let api = server.to_owned() + "/api" + "/v" + API_VERSION;
 
     let api_update = api + "/update";
 
@@ -129,21 +135,39 @@ pub fn backend() {
         .timeout(Duration::from_secs(10))
 
         .build();
-    let requests;
+
+    let (
+        application_data, user_data,
+        requests,
+    );
+
+    match _application_data {
+        Ok(_) => (),
+        Err(_) => display_critical_error("Couldn't retrieve application data."),
+    }
+
+    application_data = _application_data.unwrap();
+
+    match _user_data {
+        Ok(_) => (),
+        Err(_) => display_critical_error("Couldn't retrieve user data."),
+    }
+
+    user_data = _user_data.unwrap();
 
     match _requests {
         Ok(_) => (),
         Err(_) => display_critical_error("Couldn't build HTTP client."),
     }
 
-    check_instances(global_variables.application_data["processId"].to_string(), &global_variables.process_id);
-    write_instance(&global_variables.application_data, &global_variables.process_id);
-
     requests = _requests.unwrap();
 
-    delete_old_version(global_variables.old_executable);
+    check_instances(application_data["processId"].to_string(), &process_id);
+    write_instance(&application_data, &process_id);
 
-    frontend(global_variables);
+    delete_old_version(OLD_EXECUTABLE);
 
-    thread::spawn(|| update_checker(global_variables.current_version.to_string(), &requests, &api_update));
+    frontend();
+
+    thread::spawn(|| update_checker(CURRENT_VERSION.to_string(), &requests, &api_update)); // FIXME
 }
