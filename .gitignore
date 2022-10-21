@@ -3,4 +3,6 @@ src/ui/index.min.js
 
 resources
 
-build/node_modules
+build/ui/node_modules
+
+dist
