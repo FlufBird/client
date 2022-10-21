@@ -1,8 +1,6 @@
 src/ui/style.min.css
 src/ui/index.min.js
 
-resources
-
 build/ui/node_modules
 
 dist

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/Mozuli/client/src/packages/global/variables"
+	"github.com/FlufBird/client/src/packages/global/variables"
 
-	"github.com/Mozuli/client/src/packages/backend"
+	"github.com/FlufBird/client/src/packages/backend"
 
 	"fmt"
 )
