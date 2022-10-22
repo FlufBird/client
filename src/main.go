@@ -1,17 +1,7 @@
 package main
 
-import (
-	"github.com/FlufBird/client/src/packages/global/variables"
-
-	"github.com/FlufBird/client/src/packages/backend"
-
-	"fmt"
-)
+import "github.com/FlufBird/client/src/packages/backend"
 
 func main() {
-	if variables.DevelopmentMode {
-		fmt.Print("DEVELOPMENT MODE ENABLED\n\n")
-	}
-
 	backend.Backend()
 }

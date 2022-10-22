@@ -100,7 +100,7 @@ func deleteOldExecutable() {
 	}
 }
 
-func checkInstances() {
+func checkInstances() *fslock.Lock {
 	lock := fslock.New(fmt.Sprintf("%s/%s", variables.TemporaryDirectory, "flufbird_single_instance_check"))
 	_error := lock.TryLock()
 
@@ -111,7 +111,15 @@ func checkInstances() {
 
 		os.Exit(0)
 	}
+
+	logging.Information("Check Instances", "File locked.")
+
+	return lock
 }
+
+func checkUpdates() {}
+
+func updateChecker() {}
 
 func displayDialog(title string, message string) *dialog.MsgBuilder {
 	return dialog.Message(message).Title(title)
@@ -128,12 +136,28 @@ func displayCriticalErrorDialog(message string) {
 func Backend() {
 	setVariables()
 
+	if variables.DevelopmentMode {
+		fmt.Print("DEVELOPMENT MODE ENABLED\n\n")
+	}
+
 	logging.Information("Variables", "OS: %s | Architecture: %s", variables.RuntimeOS, variables.RuntimeArchitecture)
 	logging.Information("Variables", "Temporary Directory: %s", variables.TemporaryDirectory)
 
-	checkInstances()
+	lock := checkInstances()
+
 	deleteOldExecutable()
 
 	// TODO: run frontend (starting + application)
-	// TODO: start update checker (thread)
+
+	go updateChecker()
+
+	defer func() { // on (graceful) exit
+		logging.Information("General", "Program is exiting.")
+
+		_error := lock.Unlock()
+
+		if _error != nil {
+			logging.Error("Check Instances", "Couldn't unlock file: %s", _error)
+		}
+	}()
 }

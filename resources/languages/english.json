@@ -13,7 +13,7 @@
         },
         "dialog": {
             "title": "A New Update is Available!",
-            "message": "v{latest_version} is available!\nYou're using v{current_version}\n\nDo you wish to update now?",
+            "message": "v{%s} is available!\nYou're using v{%s}\n\nDo you wish to update now?",
             "options": {
                 "no": "No",
                 "yes": "Yes"
