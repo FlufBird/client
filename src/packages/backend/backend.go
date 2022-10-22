@@ -6,9 +6,9 @@ import (
 	"github.com/FlufBird/client/src/packages/global/functions/logging"
 
 	"fmt"
+	"time"
 	"runtime"
 	"os"
-
 	"net/http"
 
 	"github.com/juju/fslock"
@@ -100,7 +100,7 @@ func deleteOldExecutable() {
 	}
 }
 
-func checkInstances() *fslock.Lock {
+func checkInstances() {
 	lock := fslock.New(fmt.Sprintf("%s/%s", variables.TemporaryDirectory, "flufbird_single_instance_check"))
 	_error := lock.TryLock()
 
@@ -113,8 +113,6 @@ func checkInstances() *fslock.Lock {
 	}
 
 	logging.Information("Check Instances", "File locked.")
-
-	return lock
 }
 
 func checkUpdates() {}
@@ -143,21 +141,11 @@ func Backend() {
 	logging.Information("Variables", "OS: %s | Architecture: %s", variables.RuntimeOS, variables.RuntimeArchitecture)
 	logging.Information("Variables", "Temporary Directory: %s", variables.TemporaryDirectory)
 
-	lock := checkInstances()
+	checkInstances()
 
 	deleteOldExecutable()
 
 	// TODO: run frontend (starting + application)
 
 	go updateChecker()
-
-	defer func() { // on (graceful) exit
-		logging.Information("General", "Program is exiting.")
-
-		_error := lock.Unlock()
-
-		if _error != nil {
-			logging.Error("Check Instances", "Couldn't unlock file: %s", _error)
-		}
-	}()
 }
