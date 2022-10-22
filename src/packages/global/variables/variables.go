@@ -1,33 +1,36 @@
 package variables
 
 import (
-	"fmt"
-	"os"
-	"runtime"
-
 	"net/http"
+
+	"github.com/Jeffail/gabs/v2"
 )
 
-const RuntimeOS string = runtime.GOOS
-const RuntimeArchitecture string = runtime.GOARCH
+var DevelopmentMode bool
 
-const resources string = "resources"
+var RootDirectory string
 
-const CurrentVersion string = "1.0.0"
-const ApiVersion string = "1"
+var RuntimeOS string
+var RuntimeArchitecture string
 
-const DevelopmentMode bool = true
+var TemporaryDirectory string
+
+var Resources string
+
+var CurrentVersion string
+var ApiVersion string
 
 var OldExecutable, CurrentExecutable string
 var Server, Api string
 
-var ResourcesData string = fmt.Sprintf("%s/data", resources)
-var ResourcesLanguages string = fmt.Sprintf("%s/languages", resources)
+var ResourcesData string
+var ResourcesLanguages string
 
-var ApiUpdate string = fmt.Sprintf("%s/update", Api)
+var ApiUpdate string
 
-var ApplicationData, UserData interface{}
+var ApplicationData, UserData *gabs.Container
 
-var TemporaryDirectory string = os.TempDir()
+var Language string
+var LanguageData *gabs.Container
 
-var HttpClient http.Client
+var HttpClient *http.Client

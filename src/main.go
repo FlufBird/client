@@ -10,7 +10,7 @@ import (
 
 func main() {
 	if variables.DevelopmentMode {
-		fmt.Print("LOGGING ENABLED\n\n")
+		fmt.Print("DEVELOPMENT MODE ENABLED\n\n")
 	}
 
 	backend.Backend()

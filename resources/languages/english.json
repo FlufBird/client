@@ -1,6 +1,10 @@
 {
     "general": {
-        "serverOnMaintenance": "The server is undergoing maintenance, come back later!"
+        "serverOnMaintenance": "The server is undergoing maintenance, come back later!",
+        "onlyOneInstance": {
+            "title": "Only 1 Instance of FlufBird can be Running at A Time",
+            "message": "Another instance of FlufBird is already running, only 1 instance of FlufBird can be running at a time!"
+        }
     },
     "updater": {
         "errors": {
