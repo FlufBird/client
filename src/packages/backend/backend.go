@@ -5,11 +5,15 @@ import (
 
 	"github.com/FlufBird/client/src/packages/global/functions/logging"
 
+	frontend "github.com/FlufBird/client/src/packages/frontend/build"
+	"github.com/FlufBird/client/src/packages/frontend/application"
+
+	"errors"
 	"fmt"
-	"time"
-	"runtime"
-	"os"
 	"net/http"
+	"os"
+	"runtime"
+	"time"
 
 	"github.com/juju/fslock"
 
@@ -90,7 +94,15 @@ func setVariables() {
 
 	variables.LanguageData = languageData
 
-	variables.HttpClient = &http.Client{ // TODO: options
+	variables.HttpClient = &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			ForceAttemptHTTP2: true,
+			TLSHandshakeTimeout: 10 * time.Second,
+		},
+		CheckRedirect: func(_ *http.Request, _ []*http.Request) error { // don't allow redirects since our api doesn't do it
+			return errors.New("")
+		},
 	}
 }
 
@@ -115,9 +127,33 @@ func checkInstances() {
 	logging.Information("Check Instances", "File locked.")
 }
 
-func checkUpdates() {}
+func checkUpdates() bool { // TODO
+	return false
+}
 
-func updateChecker() {}
+func updateChecker() {
+	logging.Information("Updater", "Checking for updates.")
+
+	for {
+		if checkUpdates() {
+			logging.Information("Updater", "New update available, asking user.")
+
+			if application.AskUpdate() {
+				update()
+			}
+
+			break
+		}
+
+		time.Sleep(30 * time.Second)
+	}
+}
+
+func update() {
+	logging.Information("Updater", "Got confirmation, updating...")
+
+	// TODO: hide application, if this errors, reshow it
+}
 
 func displayDialog(title string, message string) *dialog.MsgBuilder {
 	return dialog.Message(message).Title(title)
@@ -145,7 +181,7 @@ func Backend() {
 
 	deleteOldExecutable()
 
-	// TODO: run frontend (starting + application)
+	frontend.Build()
 
 	go updateChecker()
 }

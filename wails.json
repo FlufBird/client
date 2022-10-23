@@ -1,0 +1,10 @@
+{
+    "name": "FlufBird",
+    "outputfilename": "flufbird.exe",
+    "info": {
+        "productName": "FlufBird",
+        "companyName": "FlufBird",
+        "productVersion": "v1.0.0",
+        "comments": "A Discord-like chatting application that enables you to share your thoughts with other people."
+    }
+}

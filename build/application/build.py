@@ -1,3 +1,5 @@
+# working with these paths are so difficult, i just bruteforced them
+
 import os, os.path
 import shutil
 
@@ -16,13 +18,7 @@ PLATFORMS = {
         "amd64",
         "arm64",
     ]],
-    "darwin": ["", [
-        "amd64",
-        "arm64"
-    ]],
 }
-
-DEVELOPMENT_MODE = os.path.isfile()
 
 os.chdir("../../dist")
 
@@ -31,12 +27,17 @@ for platform in PLATFORMS:
     os.chdir(platform)
 
     for architecture in PLATFORMS[platform][1]:
-        directory = f"../dist/{platform}/{architecture}"
+        _directory = f"dist/{platform}/{architecture}"
+        directory = f"../{_directory}"
 
         make_directory(architecture)
         os.chdir(architecture)
 
-        # build with `wails build` here
+        os.chdir("../../..")
+
+        os.system(f"""wails build -clean -u -v 2 -platform "{platform}/{architecture}" -webview2 "embed" -trimpath "true" -o "{_directory}/flufbird.exe" """)
+
+        os.chdir(_directory)
 
         if not directory_exists("resources"):
             shutil.copytree("../../../resources", "resources")
