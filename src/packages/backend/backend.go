@@ -152,7 +152,7 @@ func updateChecker() {
 func update() {
 	logging.Information("Updater", "Got confirmation, updating...")
 
-	// TODO: hide application, if this errors, reshow it
+	// TODO: hide application, if this errors, reshow it and display error
 }
 
 func displayDialog(title string, message string) *dialog.MsgBuilder {
