@@ -10,14 +10,17 @@ import (
 
 	"errors"
 	"fmt"
-	"net/http"
-	"os"
+	"io"
 	"runtime"
+	"os"
 	"time"
+	"net/http"
 
 	"github.com/juju/fslock"
 
 	"github.com/Jeffail/gabs/v2"
+
+	// "github.com/cavaliergopher/grab/v3"
 
 	"github.com/sqweek/dialog"
 )
@@ -42,24 +45,22 @@ func setVariables() {
 	}
 
 	if variables.DevelopmentMode {
-		variables.RootDirectory = "../" // we're currently inside "src" in development so we have to move 1 directory above
 		variables.Server = "http://localhost:5000"
 	} else {
-		variables.RootDirectory = ""
 		variables.Server = "https://flufbird.deta.dev"
 	}
 
-	variables.Resources = fmt.Sprintf("%sresources", variables.RootDirectory)
+	variables.Resources = "resources"
+	variables.Data = "data"
 
-	variables.ResourcesData = fmt.Sprintf("%s/data", variables.Resources)
-	variables.ResourcesLanguages = fmt.Sprintf("%s/languages", variables.Resources)
+	variables.Languages = fmt.Sprintf("%s/languages", variables.Resources)
 
 	variables.Api = fmt.Sprintf("%s/api/v%s", variables.Server, variables.ApiVersion)
 
 	variables.ApiUpdate = fmt.Sprintf("%s/update", variables.Api)
 
-	parsedApplicationData, applicationDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/application.json", variables.ResourcesData))
-	parsedUserData, userDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/user.json", variables.ResourcesData))
+	parsedApplicationData, applicationDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/application.json", variables.Data))
+	parsedUserData, userDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/user.json", variables.Data))
 
 	if applicationDataError != nil {
 		logging.Fatal("Variables Setting", "Couldn't retrieve application data: %s", applicationDataError)
@@ -82,7 +83,7 @@ func setVariables() {
 
 	variables.Language = variables.UserData.Path("language").Data().(string)
 
-	languageData, languageDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/%s.json", variables.ResourcesLanguages, variables.Language))
+	languageData, languageDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/%s.json", variables.Languages, variables.Language))
 
 	if languageDataError != nil {
 		logging.Fatal("Variables Setting", "Couldn't retrieve language data: %s", languageDataError)
@@ -100,7 +101,7 @@ func setVariables() {
 			ForceAttemptHTTP2: true,
 			TLSHandshakeTimeout: 10 * time.Second,
 		},
-		CheckRedirect: func(_ *http.Request, _ []*http.Request) error { // don't allow redirects since our api doesn't do it
+		CheckRedirect: func(_ *http.Request, _ []*http.Request) error { // don't allow redirects since our api doesn't redirect
 			return errors.New("")
 		},
 	}
@@ -127,12 +128,38 @@ func checkInstances() {
 	logging.Information("Check Instances", "File locked.")
 }
 
-func checkUpdates() bool { // TODO
-	return false
+func checkUpdates() bool {
+	response, request_error := variables.HttpClient.Get(fmt.Sprintf("%s/latest_version", variables.ApiUpdate))
+
+	if request_error != nil {
+		logging.Information("Check Updates", "Couldn't send request.")
+
+		return false
+	}
+
+	body, read_error := io.ReadAll(response.Body)
+
+	if read_error != nil {
+		logging.Information("Check Updates", "Couldn't read response.")
+
+		return false
+	}
+
+	data, parse_error := gabs.ParseJSON(body)
+
+	if parse_error != nil {
+		logging.Information("Check Updates", "Couldn't parse response data.")
+
+		return false
+	}
+
+	defer response.Body.Close()
+
+	return variables.CurrentVersion != data.Path("latestVersion").Data().(string)
 }
 
 func updateChecker() {
-	logging.Information("Updater", "Checking for updates.")
+	logging.Information("Updater", "Checking for updates at %s", variables.ApiUpdate)
 
 	for {
 		if checkUpdates() {
@@ -140,6 +167,8 @@ func updateChecker() {
 
 			if application.AskUpdate() {
 				update()
+			} else {
+				logging.Information("Updater", "User denied.")
 			}
 
 			break
@@ -152,7 +181,7 @@ func updateChecker() {
 func update() {
 	logging.Information("Updater", "Got confirmation, updating...")
 
-	// TODO: hide application, if this errors, reshow it and display error
+	// TODO: hide application (remember to hide all events) and display progress window, if this errors, display error, close the progress window and reshow the application
 }
 
 func displayDialog(title string, message string) *dialog.MsgBuilder {
@@ -181,7 +210,11 @@ func Backend() {
 
 	deleteOldExecutable()
 
+	go updateChecker()
+
 	frontend.Build()
 
-	go updateChecker()
+	for { // prevents the program from exiting for development
+		time.Sleep(time.Hour)
+	}
 }

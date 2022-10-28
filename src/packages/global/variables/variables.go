@@ -8,14 +8,13 @@ import (
 
 var DevelopmentMode bool
 
-var RootDirectory string
-
 var RuntimeOS string
 var RuntimeArchitecture string
 
 var TemporaryDirectory string
 
 var Resources string
+var Data string
 
 var CurrentVersion string
 var ApiVersion string
@@ -23,8 +22,7 @@ var ApiVersion string
 var OldExecutable, CurrentExecutable string
 var Server, Api string
 
-var ResourcesData string
-var ResourcesLanguages string
+var Languages string
 
 var ApiUpdate string
 

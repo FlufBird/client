@@ -1,5 +1,7 @@
 package application
 
 func AskUpdate() bool { // TODO
-	return false
+	// if the window isnt yet available, block until its fully loaded
+
+	return true
 }
