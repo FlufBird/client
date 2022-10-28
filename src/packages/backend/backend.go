@@ -25,50 +25,30 @@ import (
 	"github.com/sqweek/dialog"
 )
 
-func setVariables() {
+func setGlobalVariables(
+	resources string,
+	data string,
+
+	server string,
+
+	apiVersion string,
+) {
 	variables.DevelopmentMode = true
 
-	variables.CurrentVersion = "1.0.0"
-	variables.ApiVersion = "1"
-
-	variables.RuntimeOS = runtime.GOOS
-	variables.RuntimeArchitecture = runtime.GOARCH
-
-	variables.TemporaryDirectory = os.TempDir()
-
-	if variables.RuntimeOS != "windows" {
-		variables.OldExecutable = "flufbird.old"
-		variables.CurrentExecutable = "flufbird"
-	} else {
-		variables.OldExecutable = "flufbird.exe.old"
-		variables.CurrentExecutable = "flufbird.exe"
-	}
-
-	if variables.DevelopmentMode {
-		variables.Server = "http://localhost:5000"
-	} else {
-		variables.Server = "https://flufbird.deta.dev"
-	}
-
-	variables.Resources = "resources"
-	variables.Data = "data"
-
-	variables.Languages = fmt.Sprintf("%s/languages", variables.Resources)
-
-	variables.Api = fmt.Sprintf("%s/api/v%s", variables.Server, variables.ApiVersion)
+	variables.Api = fmt.Sprintf("%s/api/v%s", server, apiVersion)
 
 	variables.ApiUpdate = fmt.Sprintf("%s/update", variables.Api)
 
-	parsedApplicationData, applicationDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/application.json", variables.Data))
-	parsedUserData, userDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/user.json", variables.Data))
+	// parsedApplicationData, applicationDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/application.json", data))
+	parsedUserData, userDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/user.json", data))
 
-	if applicationDataError != nil {
-		logging.Fatal("Variables Setting", "Couldn't retrieve application data: %s", applicationDataError)
+	// if applicationDataError != nil {
+	// 	logging.Fatal("Variables Setting", "Couldn't retrieve application data: %s", applicationDataError)
 
-		displayCriticalErrorDialog("Couldn't retrieve application data.")
+	// 	displayCriticalErrorDialog("Couldn't retrieve application data.")
 
-		os.Exit(1)
-	}
+	// 	os.Exit(1)
+	// }
 
 	if userDataError != nil {
 		logging.Fatal("Variables Setting", "Couldn't retrieve user data: %s", userDataError)
@@ -78,12 +58,7 @@ func setVariables() {
 		os.Exit(1)
 	}
 
-	variables.ApplicationData = parsedApplicationData
-	variables.UserData = parsedUserData
-
-	variables.Language = variables.UserData.Path("language").Data().(string)
-
-	languageData, languageDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/%s.json", variables.Languages, variables.Language))
+	language, languageDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/%s.json", fmt.Sprintf("%s/languages", resources), parsedUserData.Path("language").Data().(string)))
 
 	if languageDataError != nil {
 		logging.Fatal("Variables Setting", "Couldn't retrieve language data: %s", languageDataError)
@@ -93,7 +68,7 @@ func setVariables() {
 		os.Exit(1)
 	}
 
-	variables.LanguageData = languageData
+	variables.Language = language
 
 	variables.HttpClient = &http.Client{
 		Timeout: 10 * time.Second,
@@ -107,20 +82,31 @@ func setVariables() {
 	}
 }
 
-func deleteOldExecutable() {
-	if os.Remove(variables.OldExecutable) == nil {
-		logging.Information("Delete Old Executable", "Old executable deleted.")
+func checkUpdated(
+	oldExecutable string,
+	currentExecutable string,
+
+	oldResources string,
+	resources string,
+
+	oldData string,
+	data string,
+) {
+	if os.Remove(oldExecutable) == nil {
+		logging.Information("Check Updated", "Old executable deleted.")
 	}
+
+	// TODO
 }
 
-func checkInstances() {
-	lock := fslock.New(fmt.Sprintf("%s/%s", variables.TemporaryDirectory, "flufbird_single_instance_check"))
+func checkInstances(temporaryDirectory string) {
+	lock := fslock.New(fmt.Sprintf("%s/%s", temporaryDirectory, "flufbird_single_instance_check"))
 	_error := lock.TryLock()
 
 	if _error != nil {
 		logging.Information("Check Instances", "Another instance is already running. | Lock Error: %s", _error.Error())
 
-		displayInformationsDialog(variables.LanguageData.Path("general.onlyOneInstance.title").Data().(string), variables.LanguageData.Path("general.onlyOneInstance.message").Data().(string))
+		displayInformationsDialog(variables.Language.Path("general.onlyOneInstance.title").Data().(string), variables.Language.Path("general.onlyOneInstance.message").Data().(string))
 
 		os.Exit(0)
 	}
@@ -128,46 +114,48 @@ func checkInstances() {
 	logging.Information("Check Instances", "File locked.")
 }
 
-func checkUpdates() bool {
-	response, request_error := variables.HttpClient.Get(fmt.Sprintf("%s/latest_version", variables.ApiUpdate))
+func checkUpdates(clientVersion string) bool {
+	response, requestError := variables.HttpClient.Get(fmt.Sprintf("%s/latest_version", variables.ApiUpdate))
 
-	if request_error != nil {
-		logging.Information("Check Updates", "Couldn't send request.")
-
-		return false
-	}
-
-	body, read_error := io.ReadAll(response.Body)
-
-	if read_error != nil {
-		logging.Information("Check Updates", "Couldn't read response.")
+	if requestError != nil {
+		logging.Information("Updater", "Couldn't send request.")
 
 		return false
 	}
 
-	data, parse_error := gabs.ParseJSON(body)
+	body, readError := io.ReadAll(response.Body)
 
-	if parse_error != nil {
-		logging.Information("Check Updates", "Couldn't parse response data.")
+	if readError != nil {
+		logging.Information("Updater", "Couldn't read response.")
+
+		return false
+	}
+
+	data, parseError := gabs.ParseJSON(body)
+
+	if parseError != nil {
+		logging.Information("Updater", "Couldn't parse response data.")
 
 		return false
 	}
 
 	defer response.Body.Close()
 
-	return variables.CurrentVersion != data.Path("latestVersion").Data().(string)
+	return clientVersion != data.Path("latestVersion").Data().(string)
 }
 
-func updateChecker() {
+func updateChecker(clientVersion string) {
 	logging.Information("Updater", "Checking for updates at %s", variables.ApiUpdate)
 
 	for {
-		if checkUpdates() {
+		if checkUpdates(clientVersion) {
 			logging.Information("Updater", "New update available, asking user.")
 
 			if application.AskUpdate() {
+				logging.Information("Updater", "Got confirmation.")
+
 				update()
-			} else {
+			} else { // we'll break out of the loop anyways since the user denied, we won't be checking for updates anymore
 				logging.Information("Updater", "User denied.")
 			}
 
@@ -179,9 +167,15 @@ func updateChecker() {
 }
 
 func update() {
-	logging.Information("Updater", "Got confirmation, updating...")
-
 	// TODO: hide application (remember to hide all events) and display progress window, if this errors, display error, close the progress window and reshow the application
+
+	logging.Information("Updater", "Downloading update archive...")
+
+	logging.Information("Updater", "Unarchiving update archive...")
+
+	logging.Information("Updater", "Exiting.")
+
+	os.Exit(0)
 }
 
 func displayDialog(title string, message string) *dialog.MsgBuilder {
@@ -197,20 +191,73 @@ func displayCriticalErrorDialog(message string) {
 }
 
 func Backend() {
-	setVariables()
+	var oldExecutable, currentExecutable string
+	var server string
+
+	runtimeOS := runtime.GOOS
+	runtimeArchitecture := runtime.GOARCH
+
+	temporaryDirectory := os.TempDir()
+
+	oldResources := "old_resources"
+	resources := "resources"
+
+	oldData := "old_data"
+	data := "data"
+
+	clientVersion := "1.0.0"
+	apiVersion := "1"
+
+	switch runtimeOS {
+		case "windows":
+			oldExecutable = "flufbird.old"
+			currentExecutable = "flufbird"
+		default:
+			oldExecutable = "flufbird.exe.old"
+			currentExecutable = "flufbird.exe"
+	}
+
+	updateArchive := "update.zip"
+
+	switch variables.DevelopmentMode {
+		case true:
+			server = "http://localhost:5000"
+		case false:
+			server = "https://flufbird.deta.dev"
+	}
+	/* end setting variables */
+
+	checkUpdated(
+		updateArchive,
+
+		oldExecutable,
+		currentExecutable,
+
+		oldResources,
+		resources,
+
+		oldData,
+		data,
+	)
+
+	setGlobalVariables(
+		resources,
+		data,
+
+		server,
+
+		apiVersion,
+	)
 
 	if variables.DevelopmentMode {
 		fmt.Print("DEVELOPMENT MODE ENABLED\n\n")
 	}
 
-	logging.Information("Variables", "OS: %s | Architecture: %s", variables.RuntimeOS, variables.RuntimeArchitecture)
-	logging.Information("Variables", "Temporary Directory: %s", variables.TemporaryDirectory)
+	logging.Information("General", "OS: %s | Architecture: %s", runtimeOS, runtimeArchitecture)
 
-	checkInstances()
+	checkInstances(temporaryDirectory)
 
-	deleteOldExecutable()
-
-	go updateChecker()
+	go updateChecker(clientVersion)
 
 	frontend.Build()
 
