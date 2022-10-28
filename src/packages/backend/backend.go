@@ -83,6 +83,8 @@ func setGlobalVariables(
 }
 
 func checkUpdated(
+	updateArchive string,
+
 	oldExecutable string,
 	currentExecutable string,
 
