@@ -98,7 +98,13 @@ func checkUpdated(
 		logging.Information("Check Updated", "Old executable deleted.")
 	}
 
-	// TODO
+	if os.RemoveAll(oldResources) == nil {
+		logging.Information("Check Updated", "Old resources deleted.")
+	}
+
+	if os.RemoveAll(oldData) == nil {
+		logging.Information("Check Updated", "Old data deleted.")
+	}
 }
 
 func checkInstances(temporaryDirectory string) {
@@ -120,7 +126,7 @@ func checkUpdates(clientVersion string) bool {
 	response, requestError := variables.HttpClient.Get(fmt.Sprintf("%s/latest_version", variables.ApiUpdate))
 
 	if requestError != nil {
-		logging.Information("Updater", "Couldn't send request.")
+		logging.Information("Updater (Check Updates)", "Couldn't send request.")
 
 		return false
 	}
@@ -128,7 +134,7 @@ func checkUpdates(clientVersion string) bool {
 	body, readError := io.ReadAll(response.Body)
 
 	if readError != nil {
-		logging.Information("Updater", "Couldn't read response.")
+		logging.Information("Updater (Check Updates)", "Couldn't read response.")
 
 		return false
 	}
@@ -136,7 +142,7 @@ func checkUpdates(clientVersion string) bool {
 	data, parseError := gabs.ParseJSON(body)
 
 	if parseError != nil {
-		logging.Information("Updater", "Couldn't parse response data.")
+		logging.Information("Updater (Check Updates)", "Couldn't parse response data.")
 
 		return false
 	}
@@ -263,7 +269,7 @@ func Backend() {
 
 	frontend.Build()
 
-	for { // prevents the program from exiting for development
+	for { // prevents the program from exiting for development, we don't yet have the application
 		time.Sleep(time.Hour)
 	}
 }
