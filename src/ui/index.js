@@ -5,5 +5,5 @@ const $ = (query) => {
 };
 
 window.onload = () => {
-    $(".container").style.display = "flex";
+    $(".container").style.display = "block";
 };
