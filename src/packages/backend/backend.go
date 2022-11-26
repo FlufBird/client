@@ -228,7 +228,7 @@ func Backend() {
 		case true:
 			server = "http://localhost:5000"
 		case false:
-			server = "https://flufbird.deta.dev"
+			server = "https://flufbird.is-an.app"
 	}
 	// end setting variables
 
