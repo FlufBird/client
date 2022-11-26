@@ -35,7 +35,7 @@ for platform in PLATFORMS:
 
         os.chdir("../../..")
 
-        os.system(f"""wails build -clean -u -v 2 -platform "{platform}/{architecture}" -webview2 "embed" -trimpath "true" -o "{_directory}/flufbird.exe" """)
+        os.system(f"""wails build -clean -u -v 2 -platform "{platform}/{architecture}" -webview2 "embed" -trimpath "true" -o "{_directory}/flufbird.exe" """) # TODO: more flags
 
         os.chdir(_directory)
 

@@ -8,7 +8,6 @@ import (
 	frontend "github.com/FlufBird/client/src/packages/frontend/build"
 	"github.com/FlufBird/client/src/packages/frontend/application"
 
-	"errors"
 	"fmt"
 	"io"
 	"runtime"
@@ -74,10 +73,8 @@ func setGlobalVariables(
 		Timeout: 10 * time.Second,
 		Transport: &http.Transport{
 			ForceAttemptHTTP2: true,
+			MaxIdleConns: 0,
 			TLSHandshakeTimeout: 10 * time.Second,
-		},
-		CheckRedirect: func(_ *http.Request, _ []*http.Request) error { // don't allow redirects since our api doesn't redirect
-			return errors.New("")
 		},
 	}
 }
@@ -131,6 +128,8 @@ func checkUpdates(clientVersion string) bool {
 		return false
 	}
 
+	defer response.Body.Close()
+
 	body, readError := io.ReadAll(response.Body)
 
 	if readError != nil {
@@ -147,8 +146,6 @@ func checkUpdates(clientVersion string) bool {
 		return false
 	}
 
-	defer response.Body.Close()
-
 	return clientVersion != data.Path("latestVersion").Data().(string)
 }
 
@@ -163,8 +160,8 @@ func updateChecker(clientVersion string) {
 				logging.Information("Updater", "Got confirmation.")
 
 				update()
-			} else { // we'll break out of the loop anyways since the user denied, we won't be checking for updates anymore
-				logging.Information("Updater", "User denied.")
+			} else {
+				logging.Information("Updater", "User denied, not checking for updates anymore.")
 			}
 
 			break
@@ -218,11 +215,11 @@ func Backend() {
 
 	switch runtimeOS {
 		case "windows":
-			oldExecutable = "flufbird.old"
-			currentExecutable = "flufbird"
-		default:
 			oldExecutable = "flufbird.exe.old"
 			currentExecutable = "flufbird.exe"
+		default:
+			oldExecutable = "flufbird.old"
+			currentExecutable = "flufbird"
 	}
 
 	updateArchive := "update.zip"
@@ -233,7 +230,7 @@ func Backend() {
 		case false:
 			server = "https://flufbird.deta.dev"
 	}
-	/* end setting variables */
+	// end setting variables
 
 	checkUpdated(
 		updateArchive,
