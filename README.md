@@ -4,4 +4,4 @@ To start the application, run `main.go` inside `src`.
 
 To build:
 - the application: Run `build.py` inside `build/application` (Requires [Python](https://www.python.org/downloads)).
-- the UI (CSS + JS): Run `npm run build` inside `build/ui` (Requires [Node.JS](https://nodejs.org/en/download)).
+- the UI (CSS + JS): Run `npm run build` inside `build/ui` (Requires [Node.JS](https://nodejs.org/en/download)), this script will watch for changes for you and process the files automatically.

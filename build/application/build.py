@@ -1,4 +1,4 @@
-# working with these paths are so difficult, i just bruteforced them
+# working with these paths are so difficult, so i just bruteforced them
 
 import os, os.path
 import shutil

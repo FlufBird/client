@@ -85,23 +85,23 @@ func checkUpdated(
 	oldExecutable string,
 	currentExecutable string,
 
-	oldResources string,
 	resources string,
+	newResources string,
 
-	oldData string,
 	data string,
+	newData string,
 ) {
 	if os.Remove(oldExecutable) == nil {
 		logging.Information("Check Updated", "Old executable deleted.")
 	}
 
-	if os.RemoveAll(oldResources) == nil {
-		logging.Information("Check Updated", "Old resources deleted.")
-	}
+	// if os.RemoveAll(oldResources) == nil {
+	// 	logging.Information("Check Updated", "Old resources deleted.")
+	// }
 
-	if os.RemoveAll(oldData) == nil {
-		logging.Information("Check Updated", "Old data deleted.")
-	}
+	// if os.RemoveAll(oldData) == nil {
+	// 	logging.Information("Check Updated", "Old data deleted.")
+	// }
 }
 
 func checkInstances(temporaryDirectory string) {
@@ -204,11 +204,11 @@ func Backend() {
 
 	temporaryDirectory := os.TempDir()
 
-	oldResources := "old_resources"
 	resources := "resources"
+	newResources := "new_resources"
 
-	oldData := "old_data"
 	data := "data"
+	newData := "new_data"
 
 	clientVersion := "1.0.0"
 	apiVersion := "1"
@@ -238,11 +238,11 @@ func Backend() {
 		oldExecutable,
 		currentExecutable,
 
-		oldResources,
 		resources,
+		newResources,
 
-		oldData,
 		data,
+		newData,
 	)
 
 	setGlobalVariables(
@@ -266,7 +266,7 @@ func Backend() {
 
 	frontend.Build()
 
-	for { // prevents the program from exiting for development, we don't yet have the application
+	for { // prevents the program from exiting for development, we dont yet have the application
 		time.Sleep(time.Hour)
 	}
 }

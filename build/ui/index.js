@@ -17,27 +17,69 @@ const jsDistributeFile = "../../src/ui/index.min.js";
 const cssProcessor = postcss([autoprefixer(), cssnano()]);
 const jsMinifierOptions = JSON.parse(fs.readFileSync(".terserrc.config.json"));
 
-const processCss = async () => {
-    const compiled = (await sass.compileAsync(cssSourceFile)).css;
-    const processed = (await cssProcessor.process(compiled)).css;
+const watchFileOptions = {
+    persistent: true,
 
-    fs.writeFile(cssDistributeFile, processed, (_) => {});
+    interval: 1000,
 };
-const minifyJs = async () => {
-    fs.readFile(jsSourceFile, async (error, data) => {
-        if (error) {
-            return;
+
+const getTime = () => {
+    let date = new Date();
+
+    return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+};
+
+const errorMessage = (path, error) => {
+    console.log(`[${getTime()}] Couldn't process ${path}: ${error}\n`);
+};
+const modifiedMessage = (path) => {
+    console.log(`[${getTime()}] ${path} is modified.`);
+}; 
+const processedMessage = (path) => {
+    console.log(`[${getTime()}] ${path} has been processed.\n`);
+};
+
+console.log(`[${getTime()}] Watching for changes.\n`);
+
+const processCss = () => {
+    fs.watchFile(cssSourceFile, watchFileOptions, async (_, __) => {
+        try {
+            modifiedMessage(cssSourceFile);
+
+            const compiled = (await sass.compileAsync(cssSourceFile)).css;
+            const processed = (await cssProcessor.process(compiled)).css;
+
+            fs.writeFile(cssDistributeFile, processed, (_) => {
+                processedMessage(cssSourceFile);
+            });
+        } catch (error) {
+            errorMessage(cssSourceFile, error);
         }
+    });
+};
+const minifyJs = () => {
+    fs.watchFile(jsSourceFile, watchFileOptions, async (_, __) => {
+        try {
+			modifiedMessage(jsSourceFile);
 
-        const minified = (await terser.minify(data.toString(), jsMinifierOptions)).code;
+			fs.readFile(jsSourceFile, async (error, data) => {
+                if (error) {
+                    errorMessage(error);
 
-        fs.writeFile(jsDistributeFile, minified, (_) => {});
+					return;
+                }
+
+                const minified = (await terser.minify(data.toString(), jsMinifierOptions)).code;
+        
+                fs.writeFile(jsDistributeFile, minified, (_) => {
+                    processedMessage(jsSourceFile);
+                });
+            });
+        } catch (error) {
+            errorMessage(jsSourceFile, error);
+        }
     });
 };
 
-(async () => {
-    await processCss();
-})();
-(async () => {
-    await minifyJs();
-})();
+processCss();
+minifyJs();
