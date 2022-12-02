@@ -41,45 +41,46 @@ const processedMessage = (path) => {
 
 console.log(`[${getTime()}] Watching for changes.\n`);
 
-const processCss = () => {
-    fs.watchFile(cssSourceFile, watchFileOptions, async (_, __) => {
-        try {
-            modifiedMessage(cssSourceFile);
+const processCss = async () => {
+    try {
+        const compiled = (await sass.compileAsync(cssSourceFile)).css;
+        const processed = (await cssProcessor.process(compiled)).css;
 
-            const compiled = (await sass.compileAsync(cssSourceFile)).css;
-            const processed = (await cssProcessor.process(compiled)).css;
-
-            fs.writeFile(cssDistributeFile, processed, (_) => {
-                processedMessage(cssSourceFile);
-            });
-        } catch (error) {
-            errorMessage(cssSourceFile, error);
-        }
-    });
+        fs.writeFile(cssDistributeFile, processed, (_) => {
+            processedMessage(cssSourceFile);
+        });
+    } catch (error) {
+        errorMessage(cssSourceFile, error);
+    }
 };
 const minifyJs = () => {
-    fs.watchFile(jsSourceFile, watchFileOptions, async (_, __) => {
-        try {
-			modifiedMessage(jsSourceFile);
+    try {
+        fs.readFile(jsSourceFile, async (error, data) => {
+            if (error) {
+                errorMessage(error);
 
-			fs.readFile(jsSourceFile, async (error, data) => {
-                if (error) {
-                    errorMessage(error);
+                return;
+            }
 
-					return;
-                }
-
-                const minified = (await terser.minify(data.toString(), jsMinifierOptions)).code;
-        
-                fs.writeFile(jsDistributeFile, minified, (_) => {
-                    processedMessage(jsSourceFile);
-                });
+            const minified = (await terser.minify(data.toString(), jsMinifierOptions)).code;
+    
+            fs.writeFile(jsDistributeFile, minified, (_) => {
+                processedMessage(jsSourceFile);
             });
-        } catch (error) {
-            errorMessage(jsSourceFile, error);
-        }
-    });
+        });
+    } catch (error) {
+        errorMessage(jsSourceFile, error);
+    }
 };
 
 processCss();
 minifyJs();
+
+fs.watchFile(cssSourceFile, watchFileOptions, (_, __) => {
+    modifiedMessage(cssSourceFile);
+    processCss();
+});
+fs.watchFile(jsSourceFile, watchFileOptions, (_, __) => {
+    modifiedMessage(jsSourceFile);
+    minifyJs();
+});
