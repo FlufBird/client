@@ -26,7 +26,11 @@ const watchFileOptions = {
 const getTime = () => {
     let date = new Date();
 
-    return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+    const addPrefix = (part) => { // its just too annoying i cant fucking take it
+        return (part.toString().length !== 1) ? part : "0" + part;
+    };
+
+    return `${addPrefix(date.getHours())}:${addPrefix(date.getMinutes())}:${addPrefix(date.getSeconds())}`;
 };
 
 const errorMessage = (path, error) => {
