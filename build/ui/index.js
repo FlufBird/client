@@ -37,7 +37,7 @@ const errorMessage = (path, error) => {
     console.log(`[${getTime()}] Couldn't process ${path}: ${error}\n`);
 };
 const modifiedMessage = (path) => {
-    console.log(`[${getTime()}] ${path} is modified.`);
+    console.log(`[${getTime()}] ${path} has been modified.`);
 }; 
 const processedMessage = (path) => {
     console.log(`[${getTime()}] ${path} has been processed.\n`);
