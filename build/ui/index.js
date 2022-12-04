@@ -46,7 +46,13 @@ const processCss = async () => {
         const compiled = (await sass.compileAsync(cssSourceFile)).css;
         const processed = (await cssProcessor.process(compiled)).css;
 
-        fs.writeFile(cssDistributeFile, processed, (_) => {
+        fs.writeFile(cssDistributeFile, processed, (callback) => {
+			if (callback !== null) {
+                errorMessage(path, callback);
+
+                return;
+            }
+
             processedMessage(cssSourceFile);
         });
     } catch (error) {
@@ -64,7 +70,13 @@ const minifyJs = () => {
 
             const minified = (await terser.minify(data.toString(), jsMinifierOptions)).code;
     
-            fs.writeFile(jsDistributeFile, minified, (_) => {
+            fs.writeFile(jsDistributeFile, minified, (callback) => {
+				if (callback !== null) {
+                    errorMessage(path, callback);
+
+                    return;
+                }
+
                 processedMessage(jsSourceFile);
             });
         });

@@ -5,15 +5,15 @@ import (
 
 	"github.com/FlufBird/client/src/packages/global/functions/logging"
 
-	frontend "github.com/FlufBird/client/src/packages/frontend/build"
 	"github.com/FlufBird/client/src/packages/frontend/application"
+	frontend "github.com/FlufBird/client/src/packages/frontend/build"
 
 	"fmt"
 	"io"
-	"runtime"
-	"os"
-	"time"
 	"net/http"
+	"os"
+	"runtime"
+	"time"
 
 	"github.com/juju/fslock"
 
@@ -105,7 +105,7 @@ func checkUpdated(
 }
 
 func checkInstances(temporaryDirectory string) {
-	lock := fslock.New(fmt.Sprintf("%s/%s", temporaryDirectory, "flufbird_single_instance_check"))
+	lock := fslock.New(fmt.Sprintf("%s/%s", temporaryDirectory, "flufbird_single_instance_lock"))
 	_error := lock.TryLock()
 
 	if _error != nil {
