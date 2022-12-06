@@ -1,5 +1,5 @@
-src/ui/style.min.css
-src/ui/index.min.js
+src/ui/dist/style.min.css
+src/ui/dist/index.min.js
 
 build/ui/node_modules
 
