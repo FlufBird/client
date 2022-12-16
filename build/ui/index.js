@@ -4,7 +4,6 @@ const fs = require("fs");
 const postcss = require("postcss");
 
 const sass = require("sass");
-const autoprefixer = require("autoprefixer");
 const cssnano = require("cssnano");
 const terser = require("terser");
 
@@ -14,7 +13,7 @@ const jsSourceFile = "../../src/ui/index.js";
 const cssDistributeFile = "../../src/ui/dist/style.min.css";
 const jsDistributeFile = "../../src/ui/dist/index.min.js";
 
-const cssProcessor = postcss([autoprefixer(), cssnano()]);
+const cssProcessor = postcss([cssnano()]);
 const jsMinifierOptions = JSON.parse(fs.readFileSync(".terserrc.config.json"));
 
 const watchFileOptions = {

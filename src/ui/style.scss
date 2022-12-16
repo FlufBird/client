@@ -1,3 +1,5 @@
+// TODO: fix the font paths to work with both dev and prod
+
 * {
     margin: 0;
     padding: 0;
@@ -9,23 +11,53 @@ a {
 }
 
 @font-face {
-    font-family: "regular";
-    src: url("../../resources/fonts/regular.ttf");
+    font-family: "poppins_regular";
+    src: url("../../resources/fonts/poppins/regular.ttf");
 }
 
 @font-face {
-    font-family: "bold";
-    src: url("../../resources/fonts/bold.ttf");
+    font-family: "poppins_bold";
+    src: url("../../resources/fonts/poppins/bold.ttf");
 }
 
 @font-face {
-    font-family: "italic";
-    src: url("../../resources/fonts/italic.ttf");
+    font-family: "poppins_italic";
+    src: url("../../resources/fonts/poppins/italic.ttf");
+}
+
+@font-face {
+    font-family: "poppins_bold_italic";
+    src: url("../../resources/fonts/poppins/bold_italic.ttf");
+}
+
+@font-face {
+    font-family: "karla_regular";
+    src: url("../../resources/fonts/karla/regular.ttf");
+}
+
+@font-face {
+    font-family: "karla_bold";
+    src: url("../../resources/fonts/karla/bold.ttf");
+}
+
+@font-face {
+    font-family: "karla_italic";
+    src: url("../../resources/fonts/karla/italic.ttf");
+}
+
+@font-face {
+    font-family: "karla_bold_italic";
+    src: url("../../resources/fonts/karla/bold_italic.ttf");
+}
+
+@font-face {
+    font-family: "consolas";
+    src: url("../../resources/fonts/consolas/font.ttf");
 }
 
 .container {
     display: none;
-    font-family: "regular";
+    font-family: "poppins_regular";
     width: 100%;
     height: fit-content;
 

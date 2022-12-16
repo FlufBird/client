@@ -11,4 +11,5 @@ require (
 require (
 	github.com/TheTitanrain/w32 v0.0.0-20180517000239-4f5cfb03fabf // indirect
 	github.com/cavaliergopher/grab/v3 v3.0.1
+	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf
 )

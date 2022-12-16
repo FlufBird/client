@@ -21,6 +21,8 @@ import (
 
 	// "github.com/cavaliergopher/grab/v3"
 
+	// "github.com/inconshreveable/go-update"
+
 	"github.com/sqweek/dialog"
 )
 
@@ -77,31 +79,6 @@ func setGlobalVariables(
 			TLSHandshakeTimeout: 10 * time.Second,
 		},
 	}
-}
-
-func checkUpdated(
-	updateArchive string,
-
-	oldExecutable string,
-	currentExecutable string,
-
-	resources string,
-	newResources string,
-
-	data string,
-	newData string,
-) {
-	if os.Remove(oldExecutable) == nil {
-		logging.Information("Check Updated", "Old executable deleted.")
-	}
-
-	// if os.RemoveAll(oldResources) == nil {
-	// 	logging.Information("Check Updated", "Old resources deleted.")
-	// }
-
-	// if os.RemoveAll(oldData) == nil {
-	// 	logging.Information("Check Updated", "Old data deleted.")
-	// }
 }
 
 func checkInstances(temporaryDirectory string) {
@@ -174,10 +151,6 @@ func updateChecker(clientVersion string) {
 func update() {
 	// TODO: hide application (remember to hide all events) and display progress window, if this errors, display error, close the progress window and reshow the application
 
-	logging.Information("Updater", "Downloading update archive...")
-
-	logging.Information("Updater", "Unarchiving update archive...")
-
 	logging.Information("Updater", "Exiting.")
 
 	os.Exit(0)
@@ -196,7 +169,6 @@ func displayCriticalErrorDialog(message string) {
 }
 
 func Backend() {
-	var oldExecutable, currentExecutable string
 	var server string
 
 	runtimeOS := runtime.GOOS
@@ -205,24 +177,10 @@ func Backend() {
 	temporaryDirectory := os.TempDir()
 
 	resources := "resources"
-	newResources := "new_resources"
-
 	data := "data"
-	newData := "new_data"
 
 	clientVersion := "1.0.0"
 	apiVersion := "1"
-
-	switch runtimeOS {
-		case "windows":
-			oldExecutable = "flufbird.exe.old"
-			currentExecutable = "flufbird.exe"
-		default:
-			oldExecutable = "flufbird.old"
-			currentExecutable = "flufbird"
-	}
-
-	updateArchive := "update.zip"
 
 	switch variables.DevelopmentMode {
 		case true:
@@ -230,20 +188,8 @@ func Backend() {
 		case false:
 			server = "https://flufbird.is-an.app"
 	}
+
 	// end setting variables
-
-	checkUpdated(
-		updateArchive,
-
-		oldExecutable,
-		currentExecutable,
-
-		resources,
-		newResources,
-
-		data,
-		newData,
-	)
 
 	setGlobalVariables(
 		resources,
