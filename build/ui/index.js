@@ -19,7 +19,7 @@ const jsMinifierOptions = JSON.parse(fs.readFileSync(".terserrc.config.json"));
 const watchFileOptions = {
     persistent: true,
 
-    interval: 1000,
+    interval: 1 * 1000,
 };
 
 const getTime = () => {
