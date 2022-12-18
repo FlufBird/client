@@ -11,38 +11,38 @@ a {
 }
 
 @font-face {
-    font-family: "poppins_regular";
+    font-family: poppins_regular;
     src: url("../../resources/fonts/poppins_regular.ttf");
 }
 
 @font-face {
-    font-family: "poppins_light";
+    font-family: poppins_light;
     src: url("../../resources/fonts/poppins_light.ttf");
 }
 
 @font-face {
-    font-family: "poppins_bold";
+    font-family: poppins_bold;
     src: url("../../resources/fonts/poppins_bold.ttf");
 }
 
 @font-face {
-    font-family: "poppins_italic";
+    font-family: poppins_italic;
     src: url("../../resources/fonts/poppins_italic.ttf");
 }
 
 @font-face {
-    font-family: "karla";
+    font-family: karla;
     src: url("../../resources/fonts/karla.ttf");
 }
 
 @font-face {
-    font-family: "consolas";
+    font-family: consolas;
     src: url("../../resources/fonts/consolas/font.ttf");
 }
 
 .container {
     display: none;
-    font-family: "poppins_regular";
+    font-family: poppins_regular;
     width: 100%;
     height: fit-content;
 
