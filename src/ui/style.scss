@@ -12,32 +12,27 @@ a {
 
 @font-face {
     font-family: "poppins_regular";
-    src: url("../../resources/fonts/poppins/regular.ttf");
+    src: url("../../resources/fonts/poppins_regular.ttf");
+}
+
+@font-face {
+    font-family: "poppins_light";
+    src: url("../../resources/fonts/poppins_light.ttf");
 }
 
 @font-face {
     font-family: "poppins_bold";
-    src: url("../../resources/fonts/poppins/bold.ttf");
+    src: url("../../resources/fonts/poppins_bold.ttf");
 }
 
 @font-face {
     font-family: "poppins_italic";
-    src: url("../../resources/fonts/poppins/italic.ttf");
+    src: url("../../resources/fonts/poppins_italic.ttf");
 }
 
 @font-face {
-    font-family: "karla_regular";
-    src: url("../../resources/fonts/karla/regular.ttf");
-}
-
-@font-face {
-    font-family: "karla_bold";
-    src: url("../../resources/fonts/karla/bold.ttf");
-}
-
-@font-face {
-    font-family: "karla_italic";
-    src: url("../../resources/fonts/karla/italic.ttf");
+    font-family: "karla";
+    src: url("../../resources/fonts/karla.ttf");
 }
 
 @font-face {
