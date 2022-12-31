@@ -26,47 +26,71 @@ import (
 	"github.com/sqweek/dialog"
 )
 
-func setGlobalVariables(
-	resources string,
-	data string,
+func setGlobalVariables() {
+	var developmentMode bool
+	var data string
+	var server string
 
-	server string,
-
-	apiVersion string,
-) {
-	variables.DevelopmentMode = true
-
-	variables.Api = fmt.Sprintf("%s/api/v%s", server, apiVersion)
-
-	variables.ApiUpdate = fmt.Sprintf("%s/update", variables.Api)
-
-	// parsedApplicationData, applicationDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/application.json", data))
-	parsedUserData, userDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/user.json", data))
-
-	// if applicationDataError != nil {
-	// 	logging.Fatal("Variables Setting", "Couldn't retrieve application data: %s", applicationDataError)
-
-	// 	displayCriticalErrorDialog("Couldn't retrieve application data.")
-
-	// 	os.Exit(1)
-	// }
-
-	if userDataError != nil {
-		logging.Fatal("Variables Setting", "Couldn't retrieve user data: %s", userDataError)
-
-		displayCriticalErrorDialog("Couldn't retrieve user data.")
-
-		os.Exit(1)
+	displayDataRetrievalError := func () {
+		displayCriticalErrorDialog("Couldn't retrieve data.")
 	}
 
-	language, languageDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/%s.json", fmt.Sprintf("%s/languages", resources), parsedUserData.Path("language").Data().(string)))
+	developmentMode = true // dont forget to change this in production 😉
 
-	if languageDataError != nil {
-		logging.Fatal("Variables Setting", "Couldn't retrieve language data: %s", languageDataError)
+	data = "data"
 
-		displayCriticalErrorDialog("Couldn't retrieve language data.")
+	variables.DevelopmentMode = developmentMode
 
-		os.Exit(1)
+	variables.Os = runtime.GOOS
+	variables.Architecture = runtime.GOARCH
+
+	variables.TemporaryDirectory = os.TempDir()
+
+	variables.Resources = "resources"
+
+	variables.ApplicationData = fmt.Sprintf("%s/application", data)
+	variables.UserData = fmt.Sprintf("%s/user", data)
+
+	variables.ApiVersion = "1"
+
+	switch developmentMode {
+		case true:
+			server = "http://localhost:31822"
+		case false:
+			server = "https://flufbird.is-an.app"
+	}
+
+	variables.Api = fmt.Sprintf("%s/api/v%s", server, variables.ApiVersion)
+
+	languages, languagesError := gabs.ParseJSONFile(fmt.Sprintf("%s/languages.json", variables.ApplicationData))
+
+	if languagesError != nil {
+		logging.Fatal("Variables Setting", "Couldn't retrieve languages list: %s", languagesError)
+
+		displayDataRetrievalError()
+	}
+
+	variables.Languages = languages
+
+	generalUserData, generalUserDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/general.json", variables.UserData))
+
+	if generalUserDataError != nil {
+		logging.Fatal("Variables Setting", "Couldn't retrieve general user data: %s", generalUserDataError)
+
+		displayDataRetrievalError()
+	}
+
+	variables.GeneralUserData = generalUserData
+
+	language, languageError := gabs.ParseJSONFile(fmt.Sprintf("%s/%s.json",
+		fmt.Sprintf("%s/languages", variables.Resources),
+		variables.GeneralUserData.Path("language").Data().(string),
+	))
+
+	if languagesError != nil {
+		logging.Fatal("Variables Setting", "Couldn't retrieve language data: %s", languageError)
+
+		displayDataRetrievalError()
 	}
 
 	variables.Language = language
@@ -82,7 +106,7 @@ func setGlobalVariables(
 }
 
 func checkInstances(temporaryDirectory string) {
-	lock := fslock.New(fmt.Sprintf("%s/%s", temporaryDirectory, "flufbird_single_instance_lock"))
+	lock := fslock.New(fmt.Sprintf("%s/%s", temporaryDirectory, "flufbird_one_instance_lock"))
 	_error := lock.TryLock()
 
 	if _error != nil {
@@ -96,8 +120,8 @@ func checkInstances(temporaryDirectory string) {
 	logging.Information("Check Instances", "File locked.")
 }
 
-func checkUpdates(clientVersion string) bool {
-	response, requestError := variables.HttpClient.Get(fmt.Sprintf("%s/latest_version", variables.ApiUpdate))
+func checkUpdates(currentVersion string, route string) bool {
+	response, requestError := variables.HttpClient.Get(fmt.Sprintf("%s/latest_version", route))
 
 	if requestError != nil {
 		logging.Information("Updater (Check Updates)", "Couldn't send request.")
@@ -123,37 +147,23 @@ func checkUpdates(clientVersion string) bool {
 		return false
 	}
 
-	return clientVersion != data.Path("latestVersion").Data().(string)
+	return currentVersion != data.Path("latestVersion").Data().(string)
 }
 
-func updateChecker(clientVersion string) {
-	logging.Information("Updater", "Checking for updates at %s", variables.ApiUpdate)
+func updateChecker(currentVersion string, route string) {
+	logging.Information("Updater", "Checking for updates at %s", route)
 
 	for {
-		if checkUpdates(clientVersion) {
-			logging.Information("Updater", "New update available, asking user.")
+		if checkUpdates(currentVersion, route) {
+			logging.Information("Updater", "New update available, displaying dialog.")
 
-			if application.AskUpdate() {
-				logging.Information("Updater", "Got confirmation.")
-
-				update()
-			} else {
-				logging.Information("Updater", "User denied, not checking for updates anymore.")
-			}
+			application.DisplayUpdateDialog()
 
 			break
 		}
 
 		time.Sleep(30 * time.Second)
 	}
-}
-
-func update() {
-	// TODO: hide application (remember to hide all events) and display progress window, if this errors, display error, close the progress window and reshow the application
-
-	logging.Information("Updater", "Exiting.")
-
-	os.Exit(0)
 }
 
 func displayDialog(title string, message string) *dialog.MsgBuilder {
@@ -166,53 +176,26 @@ func displayInformationsDialog(title string, message string) {
 
 func displayCriticalErrorDialog(message string) {
 	displayDialog("Critical Error - FlufBird", message).Error()
+
+	os.Exit(1)
 }
 
 func Backend() {
-	var server string
+	// clientVersion := "1.0.0-a.1"
 
-	runtimeOS := runtime.GOOS
-	runtimeArchitecture := runtime.GOARCH
-
-	temporaryDirectory := os.TempDir()
-
-	resources := "resources"
-	data := "data"
-
-	clientVersion := "1.0.0"
-	apiVersion := "1"
-
-	switch variables.DevelopmentMode {
-		case true:
-			server = "http://localhost:5000"
-		case false:
-			server = "https://flufbird.is-an.app"
-	}
-
-	// end setting variables
-
-	setGlobalVariables(
-		resources,
-		data,
-
-		server,
-
-		apiVersion,
-	)
+	setGlobalVariables()
 
 	if variables.DevelopmentMode {
-		fmt.Print("DEVELOPMENT MODE ENABLED\n\n")
+		fmt.Print("IN DEVELOPMENT MODE\n\n")
 	}
 
-	logging.Information("General", "OS: %s | Architecture: %s", runtimeOS, runtimeArchitecture)
+	logging.Information("General", "OS: %s | Architecture: %s", variables.Os, variables.Architecture)
 
-	checkInstances(temporaryDirectory)
-
-	go updateChecker(clientVersion)
+	checkInstances(variables.TemporaryDirectory)
 
 	frontend.Build()
 
-	for { // prevents the program from exiting for development, we dont yet have the application
-		time.Sleep(time.Hour)
-	}
+	// TODO: check for updates on app start first, if the user clicks no, dont start the update checker thread
+
+	// go updateChecker(clientVersion, fmt.Sprintf("%s/update", variables.Api))
 }

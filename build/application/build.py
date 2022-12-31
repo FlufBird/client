@@ -1,7 +1,6 @@
 # working with these paths are so difficult, so i just bruteforced them
 
 import os, os.path
-import shutil
 
 def directory_exists(name : str) -> bool:
     return os.path.isdir(name)
@@ -20,6 +19,8 @@ PLATFORMS = {
     ]],
 }
 
+# TODO: dist/raw & dist/archives
+
 os.chdir("../../dist")
 
 for platform in PLATFORMS:
@@ -37,10 +38,11 @@ for platform in PLATFORMS:
 
         os.system(f"""wails build -clean -u -v 2 -platform "{platform}/{architecture}" -webview2 "embed" -trimpath "true" -o "{_directory}/flufbird.exe" """) # TODO: more flags
 
-        os.chdir(_directory)
+        # TODO: add resources & data
 
-        if not directory_exists("resources"):
-            shutil.copytree("../../../resources", "resources")
+        # TODO: calculate sha256 checksum and print
+
+        # TODO: pack into zip archive
 
         os.chdir("..")
 

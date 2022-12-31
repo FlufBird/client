@@ -8,11 +8,17 @@ import (
 
 var DevelopmentMode bool
 
-var Api string
+var Os, Architecture string
 
-var ApiUpdate string
+var TemporaryDirectory string
 
-var ApplicationData, UserData *gabs.Container
-var Language *gabs.Container
+var Resources string
+var ApplicationData, UserData string
+
+var GeneralUserData *gabs.Container
+
+var Languages, Language *gabs.Container
+
+var ApiVersion, Api string
 
 var HttpClient *http.Client

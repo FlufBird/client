@@ -18,7 +18,6 @@ const jsMinifierOptions = JSON.parse(fs.readFileSync(".terserrc.config.json"));
 
 const watchFileOptions = {
     persistent: true,
-
     interval: 1 * 1000,
 };
 
@@ -32,15 +31,9 @@ const getTime = () => {
     return `${addPrefix(date.getHours())}:${addPrefix(date.getMinutes())}:${addPrefix(date.getSeconds())}`;
 };
 
-const errorMessage = (path, error) => {
-    console.log(`[${getTime()}] Couldn't process ${path}: ${error}\n`);
-};
-const modifiedMessage = (path) => {
-    console.log(`[${getTime()}] ${path} has been modified.`);
-}; 
-const processedMessage = (path) => {
-    console.log(`[${getTime()}] ${path} has been processed.\n`);
-};
+const errorMessage = (path, error) => console.log(`[${getTime()}] Couldn't process ${path}: ${error}\n`);
+const modifiedMessage = (path) => console.log(`[${getTime()}] ${path} has been modified.`);
+const processedMessage = (path) => console.log(`[${getTime()}] ${path} has been processed.\n`);
 
 console.log(`[${getTime()}] Watching for changes.\n`);
 
@@ -59,8 +52,8 @@ const processCss = async () => {
             processedMessage(cssSourceFile);
         });
     } catch (error) {
-        errorMessage(cssSourceFile, error);
-    }
+		errorMessage(cssSourceFile, error);
+	}
 };
 const minifyJs = () => {
     try {
@@ -84,8 +77,8 @@ const minifyJs = () => {
             });
         });
     } catch (error) {
-        errorMessage(jsSourceFile, error);
-    }
+		errorMessage(jsSourceFile, error);
+	}
 };
 
 processCss();
