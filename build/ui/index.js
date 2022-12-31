@@ -7,11 +7,11 @@ const sass = require("sass");
 const cssnano = require("cssnano");
 const terser = require("terser");
 
-const cssSourceFile = "../../src/ui/style.scss";
-const jsSourceFile = "../../src/ui/index.js";
+const cssSourceFile = "../../src/ui/src/style.scss";
+const jsSourceFile = "../../src/ui/src/index.js";
 
-const cssDistributeFile = "../../src/ui/dist/style.min.css";
-const jsDistributeFile = "../../src/ui/dist/index.min.js";
+const cssDistributeFile = "../../src/ui/dist/style.css";
+const jsDistributeFile = "../../src/ui/dist/index.js";
 
 const cssProcessor = postcss([cssnano()]);
 const jsMinifierOptions = JSON.parse(fs.readFileSync(".terserrc.config.json"));

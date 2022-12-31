@@ -27,19 +27,17 @@ import (
 )
 
 func setGlobalVariables() {
-	var developmentMode bool
-	var data string
 	var server string
 
 	displayDataRetrievalError := func () {
 		displayCriticalErrorDialog("Couldn't retrieve data.")
 	}
 
-	developmentMode = true // dont forget to change this in production 😉
+	development := true // dont forget to change this in production 😉
 
-	data = "data"
+	data := "data"
 
-	variables.DevelopmentMode = developmentMode
+	variables.Development = development
 
 	variables.Os = runtime.GOOS
 	variables.Architecture = runtime.GOARCH
@@ -53,7 +51,7 @@ func setGlobalVariables() {
 
 	variables.ApiVersion = "1"
 
-	switch developmentMode {
+	switch development {
 		case true:
 			server = "http://localhost:31822"
 		case false:
@@ -185,7 +183,7 @@ func Backend() {
 
 	setGlobalVariables()
 
-	if variables.DevelopmentMode {
+	if variables.Development {
 		fmt.Print("IN DEVELOPMENT MODE\n\n")
 	}
 

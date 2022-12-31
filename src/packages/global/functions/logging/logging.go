@@ -24,7 +24,7 @@ func Fatal(section string, message string, arguments ...any) {
 }
 
 func Log(_type string, section string, message string, arguments ...any) {
-	if !variables.DevelopmentMode {
+	if !variables.Development {
 		return
 	}
 

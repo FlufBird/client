@@ -6,7 +6,7 @@ import (
 	"github.com/Jeffail/gabs/v2"
 )
 
-var DevelopmentMode bool
+var Development bool
 
 var Os, Architecture string
 
