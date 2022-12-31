@@ -12,6 +12,7 @@ def make_directory(name : str) -> None:
 PLATFORMS = {
     "windows": ["exe", [
         "amd64",
+        "arm64",
     ]],
     "linux": ["", [
         "amd64",

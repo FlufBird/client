@@ -155,7 +155,7 @@ func updateChecker(currentVersion string, route string) {
 
 	for {
 		if checkUpdates(currentVersion, route) {
-			logging.Information("Updater", "New update available, displaying dialog.")
+			logging.Information("Updater", "New update available.")
 
 			application.DisplayUpdateDialog()
 
