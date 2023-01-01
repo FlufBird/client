@@ -1,12 +1,9 @@
-package backend
+package main
 
 import (
-	"github.com/FlufBird/client/src/packages/global/variables"
+	"github.com/FlufBird/client/packages/global/variables"
 
-	"github.com/FlufBird/client/src/packages/global/functions/logging"
-
-	"github.com/FlufBird/client/src/packages/frontend/application"
-	frontend "github.com/FlufBird/client/src/packages/frontend/build"
+	"github.com/FlufBird/client/packages/global/functions/logging"
 
 	"fmt"
 	"io"
@@ -19,14 +16,11 @@ import (
 
 	"github.com/Jeffail/gabs/v2"
 
-	// "github.com/cavaliergopher/grab/v3"
-
-	// "github.com/inconshreveable/go-update"
-
 	"github.com/sqweek/dialog"
 )
 
 func setGlobalVariables() {
+	var data string
 	var server string
 
 	displayDataRetrievalError := func () {
@@ -35,35 +29,37 @@ func setGlobalVariables() {
 
 	development := true // dont forget to change this in production 😉
 
-	data := "data"
-
 	variables.Development = development
+
+	switch variables.Development {
+		case true:
+			data = "../data"
+			variables.Resources = "../resources"
+
+			server = "http://localhost:31822"
+		case false:
+			data = "data"
+			variables.Resources = "resources"
+
+			server = "https://flufbird.is-an.app"
+	}
 
 	variables.Os = runtime.GOOS
 	variables.Architecture = runtime.GOARCH
 
 	variables.TemporaryDirectory = os.TempDir()
 
-	variables.Resources = "resources"
-
 	variables.ApplicationData = fmt.Sprintf("%s/application", data)
 	variables.UserData = fmt.Sprintf("%s/user", data)
 
 	variables.ApiVersion = "1"
-
-	switch development {
-		case true:
-			server = "http://localhost:31822"
-		case false:
-			server = "https://flufbird.is-an.app"
-	}
 
 	variables.Api = fmt.Sprintf("%s/api/v%s", server, variables.ApiVersion)
 
 	languages, languagesError := gabs.ParseJSONFile(fmt.Sprintf("%s/languages.json", variables.ApplicationData))
 
 	if languagesError != nil {
-		logging.Fatal("Variables Setting", "Couldn't retrieve languages list: %s", languagesError)
+		logging.Critical("Variables Setting", "Couldn't retrieve languages list: %s", languagesError)
 
 		displayDataRetrievalError()
 	}
@@ -73,7 +69,7 @@ func setGlobalVariables() {
 	generalUserData, generalUserDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/general.json", variables.UserData))
 
 	if generalUserDataError != nil {
-		logging.Fatal("Variables Setting", "Couldn't retrieve general user data: %s", generalUserDataError)
+		logging.Critical("Variables Setting", "Couldn't retrieve general user data: %s", generalUserDataError)
 
 		displayDataRetrievalError()
 	}
@@ -86,7 +82,7 @@ func setGlobalVariables() {
 	))
 
 	if languagesError != nil {
-		logging.Fatal("Variables Setting", "Couldn't retrieve language data: %s", languageError)
+		logging.Critical("Variables Setting", "Couldn't retrieve language data: %s", languageError)
 
 		displayDataRetrievalError()
 	}
@@ -155,7 +151,7 @@ func updateChecker(currentVersion string, route string) {
 		if checkUpdates(currentVersion, route) {
 			logging.Information("Updater", "New update available.")
 
-			application.DisplayUpdateDialog()
+			displayUpdateDialog()
 
 			break
 		}
@@ -178,7 +174,7 @@ func displayCriticalErrorDialog(message string) {
 	os.Exit(1)
 }
 
-func Backend() {
+func startBackend() {
 	// clientVersion := "1.0.0-a.1"
 
 	setGlobalVariables()
@@ -191,7 +187,7 @@ func Backend() {
 
 	checkInstances(variables.TemporaryDirectory)
 
-	frontend.Build()
+	buildFrontend()
 
 	// TODO: check for updates on app start first, if the user clicks no, dont start the update checker thread
 

@@ -1,4 +1,4 @@
-// TODO: fix the font paths to work with both dev and prod
+// TODO: fix paths location for resources in order to support both dev and prod
 
 * {
     margin: 0;
@@ -12,32 +12,32 @@ a {
 
 @font-face {
     font-family: poppins_regular;
-    src: url("../../resources/fonts/poppins_regular.ttf");
+    src: url("../../../resources/fonts/poppins_regular.ttf");
 }
 
 @font-face {
     font-family: poppins_light;
-    src: url("../../resources/fonts/poppins_light.ttf");
+    src: url("../../../resources/fonts/poppins_light.ttf");
 }
 
 @font-face {
     font-family: poppins_bold;
-    src: url("../../resources/fonts/poppins_bold.ttf");
+    src: url("../../../resources/fonts/poppins_bold.ttf");
 }
 
 @font-face {
     font-family: poppins_italic;
-    src: url("../../resources/fonts/poppins_italic.ttf");
+    src: url("../../../resources/fonts/poppins_italic.ttf");
 }
 
 @font-face {
     font-family: karla;
-    src: url("../../resources/fonts/karla.ttf");
+    src: url("../../../resources/fonts/karla.ttf");
 }
 
 @font-face {
     font-family: consolas;
-    src: url("../../resources/fonts/consolas/font.ttf");
+    src: url("../../../resources/fonts/consolas/font.ttf");
 }
 
 .container {

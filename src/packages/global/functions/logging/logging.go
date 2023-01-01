@@ -1,7 +1,7 @@
 package logging
 
 import (
-	"github.com/FlufBird/client/src/packages/global/variables"
+	"github.com/FlufBird/client/packages/global/variables"
 
 	"fmt"
 	"time"
@@ -19,8 +19,8 @@ func Error(section string, message string, arguments ...any) {
 	Log("ERROR", section, message, arguments...)
 }
 
-func Fatal(section string, message string, arguments ...any) {
-	Log("FATAL", section, message, arguments...)
+func Critical(section string, message string, arguments ...any) {
+	Log("CRITICAL", section, message, arguments...)
 }
 
 func Log(_type string, section string, message string, arguments ...any) {
