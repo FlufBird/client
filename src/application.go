@@ -1,6 +1,7 @@
 package main
 
 import (
+	. "github.com/FlufBird/client/packages/global/functions/general"
 	"github.com/FlufBird/client/packages/global/functions/logging"
 
 	"context"
@@ -17,15 +18,20 @@ func createApplication() *Application {
 }
 
 func (application *Application) onStartup(context context.Context) {
-	logging.Information("Frontend (Startup)", "Application started up.")
+	logging.Information("Frontend", "Application started up.")
 
 	application.context = context
 }
 
 func (application *Application) onDomReady(_ context.Context) {
-	logging.Information("Frontend (DOM Ready)", "Application's DOM is ready.")
+	logging.Information("Frontend", "Application's DOM is ready.")
 
+	runtime.WindowCenter(application.context)
 	runtime.WindowShow(application.context)
+}
+
+func (application *Application) GetLanguageData_(key string) string {
+	return GetLanguageData(key).(string)
 }
 
 func displayUpdateDialog() {}

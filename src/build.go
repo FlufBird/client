@@ -1,9 +1,14 @@
 package main
 
 import (
+	"github.com/FlufBird/client/packages/global/variables"
 	"github.com/FlufBird/client/packages/global/functions/logging"
 
 	"embed"
+	"fmt"
+	"os"
+
+	"net/http"
 
 	"github.com/wailsapp/wails/v2"
 	wailsOptions "github.com/wailsapp/wails/v2/pkg/options"
@@ -13,22 +18,59 @@ import (
 //go:embed frontend/dist
 var frontend embed.FS
 
+func assetServerHandler(writer http.ResponseWriter, request *http.Request) {
+	if request.Method != "GET" {
+		writer.WriteHeader(http.StatusMethodNotAllowed)
+
+		return
+	}
+
+	file := request.URL.Path
+
+	if file == "/favicon.ico" {
+		writer.WriteHeader(http.StatusNotImplemented)
+
+		return
+	}
+
+	prefix := ""
+
+	if variables.Development {
+		prefix = ".."
+	}
+
+	data, _error := os.ReadFile(fmt.Sprintf("%s%s", prefix, file))
+
+	if _error != nil {
+		writer.WriteHeader(http.StatusNotFound)
+
+		return
+	}
+
+	writer.Write(data)
+	writer.WriteHeader(http.StatusOK)
+}
+
 func buildFrontend() {
 	logging.Information("Frontend (Build)", "Building frontend...")
 
 	application := createApplication()
 
 	_error := wails.Run(&wailsOptions.App{ // TODO: windows, linux
-		MinWidth: 800,
-		MinHeight: 600,
+		Width: 300,
+		Height: 400,
+
+		MinWidth: 300,
+		MinHeight: 400,
 
 		Frameless: true,
 
 		StartHidden: true,
 
-		WindowStartState: 1,
-
-		AssetServer: &assetServerOptions.Options{Assets: frontend},
+		AssetServer: &assetServerOptions.Options{
+			Assets:  frontend,
+			Handler: http.HandlerFunc(assetServerHandler),
+		},
 
 		OnStartup: application.onStartup,
 		OnDomReady: application.onDomReady,
@@ -37,6 +79,6 @@ func buildFrontend() {
 	})
 
 	if _error != nil {
-		logging.Critical("Frontend (Build)", "Unable to build frontend: %s", _error)
+		logging.Critical("Frontend", "Unable to build frontend: %s", _error)
 	}
 }

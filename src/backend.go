@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/FlufBird/client/packages/global/variables"
 
+	. "github.com/FlufBird/client/packages/global/functions/general"
 	"github.com/FlufBird/client/packages/global/functions/logging"
 
 	"fmt"
@@ -23,13 +24,9 @@ func setGlobalVariables() {
 	var data string
 	var server string
 
-	displayDataRetrievalError := func () {
-		displayCriticalErrorDialog("Couldn't retrieve data.")
-	}
+	displayDataRetrievalError := func() {displayCriticalErrorDialog("Couldn't retrieve data.")}
 
-	development := true // dont forget to change this in production 😉
-
-	variables.Development = development
+	variables.Development = true // dont forget to change this in production 😉
 
 	switch variables.Development {
 		case true:
@@ -92,8 +89,8 @@ func setGlobalVariables() {
 	variables.HttpClient = &http.Client{
 		Timeout: 10 * time.Second,
 		Transport: &http.Transport{
-			ForceAttemptHTTP2: true,
-			MaxIdleConns: 0,
+			ForceAttemptHTTP2:   true,
+			MaxIdleConns:        0,
 			TLSHandshakeTimeout: 10 * time.Second,
 		},
 	}
@@ -106,7 +103,7 @@ func checkInstances(temporaryDirectory string) {
 	if _error != nil {
 		logging.Information("Check Instances", "Another instance is already running. | Lock Error: %s", _error.Error())
 
-		displayInformationsDialog(variables.Language.Path("general.onlyOneInstance.title").Data().(string), variables.Language.Path("general.onlyOneInstance.message").Data().(string))
+		displayInformationsDialog(GetLanguageData("general.onlyOneInstance.title").(string), GetLanguageData("general.onlyOneInstance.message").(string))
 
 		os.Exit(0)
 	}
@@ -185,7 +182,9 @@ func startBackend() {
 
 	logging.Information("General", "OS: %s | Architecture: %s", variables.Os, variables.Architecture)
 
-	checkInstances(variables.TemporaryDirectory)
+	if !variables.Development {
+		checkInstances(variables.TemporaryDirectory)
+	}
 
 	buildFrontend()
 

@@ -3,11 +3,15 @@
     <head>
 		<meta name="charset" content="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="style.css">
-        <script src="index.js" defer></script>
+        <link rel="stylesheet" href="index.css">
+        <script src="index.js" type="module" defer></script>
     </head>
     <body>
         <div class="container hidden">
+            <div class="checking-updates">
+                <img class="loader" src="resources/assets/images/icons/loader.png" alt="Loading Spinner">
+                <span class="message" data-language="update.message"></span>
+            </div>
             <div class="authentication hidden">
                 <div class="log-in"></div>
                 <div class="sign-up hidden"></div>

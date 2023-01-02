@@ -1,9 +1,16 @@
-// TODO: fix paths location for resources in order to support both dev and prod
+$color-scheme-1: rgb(37, 131, 200);
+$color-scheme-2: rgb(35, 163, 255);
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+body {
+    background-color: rgb(63, 63, 63);
+    overflow: hidden;
+    --wails-draggable: drag;
 }
 
 a {
@@ -12,32 +19,32 @@ a {
 
 @font-face {
     font-family: poppins_regular;
-    src: url("../../../resources/fonts/poppins_regular.ttf");
+    src: url("resources/assets/fonts/poppins_regular.ttf");
 }
 
 @font-face {
     font-family: poppins_light;
-    src: url("../../../resources/fonts/poppins_light.ttf");
+    src: url("resources/assets/fonts/poppins_light.ttf");
 }
 
 @font-face {
     font-family: poppins_bold;
-    src: url("../../../resources/fonts/poppins_bold.ttf");
+    src: url("resources/assets/fonts/poppins_bold.ttf");
 }
 
 @font-face {
     font-family: poppins_italic;
-    src: url("../../../resources/fonts/poppins_italic.ttf");
+    src: url("resources/assets/fonts/poppins_italic.ttf");
 }
 
 @font-face {
     font-family: karla;
-    src: url("../../../resources/fonts/karla.ttf");
+    src: url("resources/assets/fonts/karla.ttf");
 }
 
 @font-face {
     font-family: consolas;
-    src: url("../../../resources/fonts/consolas/font.ttf");
+    src: url("resources/assets/fonts/consolas.ttf");
 }
 
 .container {
@@ -46,7 +53,10 @@ a {
     width: 100%;
     height: fit-content;
 
-    .hidden {
-        display: none;
-    }
+    // .hidden {
+    //     display: none;
+    // }
+}
+
+.loader {
 }
