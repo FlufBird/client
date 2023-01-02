@@ -1,6 +1,6 @@
 {
     "preset": ["advanced", {
-        "autoprefixer": false,
+        "autoprefixer": true,
         "cssDeclarationSorter": true,
         "calc": true,
         "colormin": true,

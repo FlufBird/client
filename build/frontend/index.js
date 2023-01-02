@@ -1,18 +1,24 @@
-const { exit } = require("process");
 const fs = require("fs");
 
 const postcss = require("postcss");
 
+const htmlMinifier = require("html-minifier-terser");
 const sass = require("sass");
 const cssnano = require("cssnano");
 const terser = require("terser");
 
-const cssSourceFile = "../../src/ui/src/style.scss";
-const jsSourceFile = "../../src/ui/src/index.js";
+const frontendSourceDirectory = "../../src/frontend/src";
+const frontendDistributeDirectory = "../../src/frontend/dist";
 
-const cssDistributeFile = "../../src/ui/dist/style.css";
-const jsDistributeFile = "../../src/ui/dist/index.js";
+const htmlSourceFile = `${frontendSourceDirectory}/index.html`;
+const cssSourceFile = `${frontendSourceDirectory}/index.scss`;
+const jsSourceFile = `${frontendSourceDirectory}/index.js`;
 
+const htmlDistributeFile = `${frontendDistributeDirectory}/index.html`;
+const cssDistributeFile = `${frontendDistributeDirectory}/index.css`;
+const jsDistributeFile = `${frontendDistributeDirectory}/index.js`;
+
+const htmlMinifierOptions = JSON.parse(fs.readFileSync(".htmlminifierrc.config.json"));
 const cssProcessor = postcss([cssnano()]);
 const jsMinifierOptions = JSON.parse(fs.readFileSync(".terserrc.config.json"));
 
@@ -35,8 +41,46 @@ const errorMessage = (path, error) => console.log(`[${getTime()}] Couldn't proce
 const modifiedMessage = (path) => console.log(`[${getTime()}] ${path} has been modified.`);
 const processedMessage = (path) => console.log(`[${getTime()}] ${path} has been processed.\n`);
 
+if (!fs.existsSync(frontendDistributeDirectory)) {
+    console.log(`${frontendDistributeDirectory} doesn't exist, attemping to create directory...`);
+
+    try {
+        fs.mkdirSync(frontendDistributeDirectory)
+    } catch (error) {
+        console.log(`Couldn't create ${frontendDistributeDirectory}: ${error}`);
+        console.log("Exiting...");
+
+        exit(1);
+    }
+}
+
 console.log(`[${getTime()}] Watching for changes.\n`);
 
+const minifyHtml = async () => {
+    try {
+        fs.readFile(htmlSourceFile, async (error, data) => {
+            if (error) {
+                errorMessage(error);
+
+                return;
+            }
+
+            const minified = await htmlMinifier.minify(data.toString(), htmlMinifierOptions);
+
+            fs.writeFile(htmlDistributeFile, minified, (callback) => {
+				if (callback !== null) {
+                    errorMessage(htmlSourceFile, callback);
+
+                    return;
+                }
+
+                processedMessage(htmlSourceFile);
+            });
+        });
+    } catch (error) {
+		errorMessage(htmlSourceFile, error);
+	}
+}
 const processCss = async () => {
     try {
         const compiled = (await sass.compileAsync(cssSourceFile)).css;
@@ -44,7 +88,7 @@ const processCss = async () => {
 
         fs.writeFile(cssDistributeFile, processed, (callback) => {
 			if (callback !== null) {
-                errorMessage(path, callback);
+                errorMessage(cssSourceFile, callback);
 
                 return;
             }
@@ -68,7 +112,7 @@ const minifyJs = () => {
     
             fs.writeFile(jsDistributeFile, minified, (callback) => {
 				if (callback !== null) {
-                    errorMessage(path, callback);
+                    errorMessage(jsSourceFile, callback);
 
                     return;
                 }
@@ -81,9 +125,14 @@ const minifyJs = () => {
 	}
 };
 
+minifyHtml();
 processCss();
 minifyJs();
 
+fs.watchFile(htmlSourceFile, watchFileOptions, (_, __) => {
+    modifiedMessage(htmlSourceFile);
+    minifyHtml();
+});
 fs.watchFile(cssSourceFile, watchFileOptions, (_, __) => {
     modifiedMessage(cssSourceFile);
     processCss();

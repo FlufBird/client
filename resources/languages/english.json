@@ -1,23 +1,24 @@
 {
+    "dialogOptions": {
+        "noYes": [
+            "No",
+            "Yes"
+        ]
+    },
     "general": {
         "serverOnMaintenance": "The server is undergoing maintenance, come back later!",
         "onlyOneInstance": {
-            "title": "Only 1 Instance of FlufBird can be Running at A Time",
+            "title": "There is Already Another Instance of FlufBird Running",
             "message": "Another instance of FlufBird is already running, only 1 instance of FlufBird can be running at a time!"
         }
     },
-    "updater": {
-        "errors": {
-            "check": "Unable to check for updates, do you wish to continue?",
-            "update": "Couldn't update application."
-        },
-        "dialog": {
+    "update": {
+        "message": "Checking for updates...",
+        "error": "Unable to check for updates.",
+        "updateAvailableDialog": {
             "title": "A New Update is Available!",
             "message": "v{%s} is available!\nYou're using v{%s}\n\nDo you wish to update now?",
-            "options": {
-                "no": "No",
-                "yes": "Yes"
-            }
+            "options": "noYes"
         }
     }
 }

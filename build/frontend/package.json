@@ -10,5 +10,8 @@
         "postcss": "^8.4.16",
         "sass": "^1.54.9",
         "terser": "^5.15.0"
+    },
+    "dependencies": {
+        "html-minifier-terser": "^7.1.0"
     }
 }

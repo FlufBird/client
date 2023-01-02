@@ -1,6 +1,6 @@
-src/ui/dist/style.min.css
-src/ui/dist/index.min.js
+src/frontend/dist
+src/build
 
-build/ui/node_modules
+build/frontend/node_modules
 
 dist
