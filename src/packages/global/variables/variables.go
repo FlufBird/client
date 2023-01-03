@@ -8,12 +8,12 @@ import (
 
 var Development bool
 
-var Os, Architecture string
-
 var TemporaryDirectory string
 
 var Resources string
 var ApplicationData, UserData string
+
+var ClientVersion string
 
 var GeneralUserData *gabs.Container
 

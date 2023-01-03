@@ -31,7 +31,7 @@ func Log(_type string, section string, message string, arguments ...any) {
 	_time := time.Now().Format("15:04:05")
 
 	fmt.Printf(
-		"[%s] [%s] [%s] %s\n",
+		"FLUFBIRD | [%s] [%s] [%s] %s\n",
 
 		_time,
 		_type,

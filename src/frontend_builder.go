@@ -6,40 +6,49 @@ import (
 
 	"embed"
 	"fmt"
+	"strings"
 	"os"
 
 	"net/http"
 
 	"github.com/wailsapp/wails/v2"
-	wailsOptions "github.com/wailsapp/wails/v2/pkg/options"
+	"github.com/wailsapp/wails/v2/pkg/options"
 	assetServerOptions "github.com/wailsapp/wails/v2/pkg/options/assetserver"
 )
 
 //go:embed frontend/dist
-var frontend embed.FS
+var assets embed.FS
 
-func assetServerHandler(writer http.ResponseWriter, request *http.Request) {
+func assetServerHandler(writer http.ResponseWriter, request *http.Request) { // how to access local file? ~ here you go 😊:
 	if request.Method != "GET" {
 		writer.WriteHeader(http.StatusMethodNotAllowed)
 
 		return
 	}
 
-	file := request.URL.Path
+	asset := strings.TrimPrefix(request.URL.Path, "/")
 
-	if file == "/favicon.ico" {
-		writer.WriteHeader(http.StatusNotImplemented)
+	if asset == "favicon.ico" {
+		writer.WriteHeader(http.StatusNotFound)
 
 		return
 	}
 
 	prefix := ""
 
-	if variables.Development {
-		prefix = ".."
+	if strings.HasPrefix(asset, "resources") || strings.HasPrefix(asset, "data") {
+		if variables.Development {
+			prefix = ".."
+		}
+	} else if asset == "wailsjs/go/main/Application" {
+		if variables.Development {
+			prefix = "frontend"
+		}
+
+		asset += ".js"
 	}
 
-	data, _error := os.ReadFile(fmt.Sprintf("%s%s", prefix, file))
+	data, _error := os.ReadFile(fmt.Sprintf("%s/%s", prefix, asset))
 
 	if _error != nil {
 		writer.WriteHeader(http.StatusNotFound)
@@ -48,32 +57,44 @@ func assetServerHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	writer.Write(data)
+
+	if strings.HasSuffix(asset, ".js") {
+		writer.Header().Set("Content-Type", "text/javascript")
+	}
+
 	writer.WriteHeader(http.StatusOK)
 }
 
 func buildFrontend() {
-	logging.Information("Frontend (Build)", "Building frontend...")
+	logging.Information("Frontend", "Building frontend...")
 
 	application := createApplication()
 
-	_error := wails.Run(&wailsOptions.App{ // TODO: windows, linux
+	_error := wails.Run(&options.App{
 		Width: 300,
-		Height: 400,
+		Height: 375,
 
 		MinWidth: 300,
-		MinHeight: 400,
+		MinHeight: 375,
+
+		MaxWidth: 300,
+		MaxHeight: 375,
 
 		Frameless: true,
 
 		StartHidden: true,
 
 		AssetServer: &assetServerOptions.Options{
-			Assets:  frontend,
+			Assets: assets,
 			Handler: http.HandlerFunc(assetServerHandler),
 		},
 
 		OnStartup: application.onStartup,
 		OnDomReady: application.onDomReady,
+
+		Debug: options.Debug{
+			OpenInspectorOnStartup: true,
+		},
 
 		Bind: []interface{}{application},
 	})

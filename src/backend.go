@@ -41,10 +41,9 @@ func setGlobalVariables() {
 			server = "https://flufbird.is-an.app"
 	}
 
-	variables.Os = runtime.GOOS
-	variables.Architecture = runtime.GOARCH
-
 	variables.TemporaryDirectory = os.TempDir()
+
+	variables.ClientVersion = "1.0.0-a.1"
 
 	variables.ApplicationData = fmt.Sprintf("%s/application", data)
 	variables.UserData = fmt.Sprintf("%s/user", data)
@@ -56,7 +55,7 @@ func setGlobalVariables() {
 	languages, languagesError := gabs.ParseJSONFile(fmt.Sprintf("%s/languages.json", variables.ApplicationData))
 
 	if languagesError != nil {
-		logging.Critical("Variables Setting", "Couldn't retrieve languages list: %s", languagesError)
+		logging.Critical("Global Variables Setter", "Couldn't retrieve languages list: %s", languagesError)
 
 		displayDataRetrievalError()
 	}
@@ -66,7 +65,7 @@ func setGlobalVariables() {
 	generalUserData, generalUserDataError := gabs.ParseJSONFile(fmt.Sprintf("%s/general.json", variables.UserData))
 
 	if generalUserDataError != nil {
-		logging.Critical("Variables Setting", "Couldn't retrieve general user data: %s", generalUserDataError)
+		logging.Critical("Global Variables Setter", "Couldn't retrieve general user data: %s", generalUserDataError)
 
 		displayDataRetrievalError()
 	}
@@ -79,7 +78,7 @@ func setGlobalVariables() {
 	))
 
 	if languagesError != nil {
-		logging.Critical("Variables Setting", "Couldn't retrieve language data: %s", languageError)
+		logging.Critical("Global Variables Setter", "Couldn't retrieve language data: %s", languageError)
 
 		displayDataRetrievalError()
 	}
@@ -89,8 +88,8 @@ func setGlobalVariables() {
 	variables.HttpClient = &http.Client{
 		Timeout: 10 * time.Second,
 		Transport: &http.Transport{
-			ForceAttemptHTTP2:   true,
-			MaxIdleConns:        0,
+			ForceAttemptHTTP2: true,
+			MaxIdleConns: 0,
 			TLSHandshakeTimeout: 10 * time.Second,
 		},
 	}
@@ -101,23 +100,23 @@ func checkInstances(temporaryDirectory string) {
 	_error := lock.TryLock()
 
 	if _error != nil {
-		logging.Information("Check Instances", "Another instance is already running. | Lock Error: %s", _error.Error())
+		logging.Information("Instances Checker", "Another instance is already running. | Lock Error: %s", _error.Error())
 
-		displayInformationsDialog(GetLanguageData("general.onlyOneInstance.title").(string), GetLanguageData("general.onlyOneInstance.message").(string))
+		displayInformationsDialog(GetLanguageData("general.onlyOneInstance.title"), GetLanguageData("general.onlyOneInstance.message"))
 
 		os.Exit(0)
 	}
 
-	logging.Information("Check Instances", "File locked.")
+	logging.Information("Instances Checker", "File locked.")
 }
 
-func checkUpdates(currentVersion string, route string) bool {
+func checkUpdates(currentVersion string, route string) (bool, error) {
 	response, requestError := variables.HttpClient.Get(fmt.Sprintf("%s/latest_version", route))
 
 	if requestError != nil {
-		logging.Information("Updater (Check Updates)", "Couldn't send request.")
+		logging.Information("Update Checker", "Couldn't send request: %s", requestError)
 
-		return false
+		return false, requestError
 	}
 
 	defer response.Body.Close()
@@ -125,28 +124,28 @@ func checkUpdates(currentVersion string, route string) bool {
 	body, readError := io.ReadAll(response.Body)
 
 	if readError != nil {
-		logging.Information("Updater (Check Updates)", "Couldn't read response.")
+		logging.Information("Update Checker", "Couldn't read response: %s", readError)
 
-		return false
+		return false, readError
 	}
 
 	data, parseError := gabs.ParseJSON(body)
 
 	if parseError != nil {
-		logging.Information("Updater (Check Updates)", "Couldn't parse response data.")
+		logging.Information("Update Checker", "Couldn't parse response data: %s", parseError)
 
-		return false
+		return false, parseError
 	}
 
-	return currentVersion != data.Path("latestVersion").Data().(string)
+	return currentVersion != data.Path("latestVersion").Data().(string), nil
 }
 
 func updateChecker(currentVersion string, route string) {
-	logging.Information("Updater", "Checking for updates at %s", route)
+	logging.Information("Update Checker (Backend)", "Checking for updates at %s", route)
 
 	for {
-		if checkUpdates(currentVersion, route) {
-			logging.Information("Updater", "New update available.")
+		if newUpdateAvailable, _ := checkUpdates(currentVersion, route); newUpdateAvailable {
+			logging.Information("Update Checker (Backend)", "New update available.")
 
 			displayUpdateDialog()
 
@@ -172,23 +171,19 @@ func displayCriticalErrorDialog(message string) {
 }
 
 func startBackend() {
-	// clientVersion := "1.0.0-a.1"
-
 	setGlobalVariables()
 
 	if variables.Development {
 		fmt.Print("IN DEVELOPMENT MODE\n\n")
 	}
 
-	logging.Information("General", "OS: %s | Architecture: %s", variables.Os, variables.Architecture)
+	logging.Information("General", "OS: %s | Architecture: %s", runtime.GOOS, runtime.GOARCH)
 
 	if !variables.Development {
 		checkInstances(variables.TemporaryDirectory)
 	}
 
 	buildFrontend()
-
-	// TODO: check for updates on app start first, if the user clicks no, dont start the update checker thread
 
 	// go updateChecker(clientVersion, fmt.Sprintf("%s/update", variables.Api))
 }
