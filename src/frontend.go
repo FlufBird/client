@@ -25,19 +25,23 @@ func (application *Application) onStartup(context context.Context) {
 	logging.Information("Frontend", "Application started up.")
 
 	application.context = context
+
+	setupEvents(application.context)
 }
 
-func (application *Application) onDomReady(_ context.Context) { // FIXME: ensure EventsOnce is executed before EventsEmit
+func (application *Application) onDomReady(_ context.Context) {
 	logging.Information("Frontend", "Frontend's DOM is ready.")
 
 	runtime.EventsEmit(application.context, "domReady")
 
 	runtime.WindowCenter(application.context)
 	runtime.WindowShow(application.context)
+}
 
+func setupEvents(context context.Context) {
 	contentLoaded := false
 
-	runtime.EventsOnce(application.context, "contentLoaded", func(_ ...interface{}) {contentLoaded = true})
+	runtime.EventsOnce(context, "contentLoaded", func(_ ...interface{}) {contentLoaded = true})
 
 	for {
 		if contentLoaded {
@@ -46,24 +50,28 @@ func (application *Application) onDomReady(_ context.Context) { // FIXME: ensure
 			break
 		}
 
-		time.Sleep(2 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
 
-	newUpdateAvailable, checkUpdatesError := checkUpdates(variables.ClientVersion, fmt.Sprintf("%s/update", variables.Api))
+	newUpdateAvailable, latestVersion, checkUpdatesError := checkUpdates(variables.ClientVersion, fmt.Sprintf("%s/update", variables.Api))
 
 	if checkUpdatesError != nil {
-		logging.Information("Update Checker (Frontend)", "Unable to check for updates: %s", checkUpdatesError)
+		logging.Error("Update Checker (Frontend)", "Unable to check for updates: %s", checkUpdatesError)
 
-		runtime.EventsEmit(application.context, "startupUpdateCheckerError")
+		runtime.EventsEmit(context, "startupUpdateCheckerError")
 	}
 
 	if newUpdateAvailable {
-		logging.Information("Update Checker (Frontend)", "New update available.")
+		logging.Information("Update Checker (Frontend)", "New update available (v%s).", latestVersion)
 
-		runtime.EventsEmit(application.context, "startupUpdateCheckerUpdateAvailable", []interface{}{"oldversion", "newversion"})
+		runtime.EventsEmit(context, "startupUpdateCheckerUpdateAvailable", []interface{}{latestVersion})
+	} else {
+		logging.Information("Update Checker (Frontend)", "Client is up-to-date (v%s).", variables.ClientVersion)
 
-		// TODO: ask user & redirect, stop app if accepted
+		runtime.EventsEmit(context, "startupUpdateCheckerUpToDate")
 	}
+
+	// go updateChecker(clientVersion, fmt.Sprintf("%s/update", variables.Api))
 }
 
 func (application *Application) GetLanguageData_(key string) string {

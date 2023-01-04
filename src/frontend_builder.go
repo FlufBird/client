@@ -1,19 +1,21 @@
 package main
 
 import (
-	"github.com/FlufBird/client/packages/global/variables"
 	"github.com/FlufBird/client/packages/global/functions/logging"
+	"github.com/FlufBird/client/packages/global/variables"
 
 	"embed"
 	"fmt"
-	"strings"
 	"os"
+	"strings"
 
 	"net/http"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	assetServerOptions "github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/options/windows"
+	"github.com/wailsapp/wails/v2/pkg/options/linux"
 )
 
 //go:embed frontend/dist
@@ -70,19 +72,30 @@ func buildFrontend() {
 
 	application := createApplication()
 
-	_error := wails.Run(&options.App{
-		Width: 300,
-		Height: 375,
+	const width int = 300;
+	const height int = 375;
 
-		MinWidth: 300,
-		MinHeight: 375,
+	_error := wails.Run(&options.App{ // TODO: icon
+		Width: width,
+		Height: height,
 
-		MaxWidth: 300,
-		MaxHeight: 375,
+		MinWidth: width,
+		MinHeight: height,
+
+		MaxWidth: width,
+		MaxHeight: height,
 
 		Frameless: true,
 
 		StartHidden: true,
+
+		Windows: &windows.Options{
+			DisableFramelessWindowDecorations: true,
+			WebviewUserDataPath: fmt.Sprintf("%s/webview_flufbird", variables.RoamingAppDataDirectory),
+		},
+		Linux: &linux.Options{
+			Icon: []byte{}, // TODO: icon
+		},
 
 		AssetServer: &assetServerOptions.Options{
 			Assets: assets,

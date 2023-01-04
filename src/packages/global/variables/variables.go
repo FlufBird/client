@@ -8,7 +8,7 @@ import (
 
 var Development bool
 
-var TemporaryDirectory string
+var TemporaryDirectory, RoamingAppDataDirectory, DataDirectory string
 
 var Resources string
 var ApplicationData, UserData string

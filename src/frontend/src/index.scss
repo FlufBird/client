@@ -69,7 +69,7 @@ a {
 }
 
 .loader {
-    animation: loader 1.5s cubic-bezier(0.77, 0, 0.175, 1) reverse infinite;
+    animation: loader 1.5s cubic-bezier(0.77, 0, 0.45, 1) reverse infinite;
 }
 
 .update-checker {
@@ -83,7 +83,7 @@ a {
     gap: 50px;
 
     .loader {
-        $size: 115px;
+        $size: 105px;
 
         width: $size;
         height: $size;

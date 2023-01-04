@@ -6,19 +6,19 @@
             "message": "Another instance of FlufBird is already running, only 1 instance of FlufBird can be running at a time!"
         }
     },
-    "dialogOptions": {
-        "noYes": [
-            "No",
-            "Yes"
-        ]
-    },
     "update": {
-        "message": "Checking for Updates...",
-        "error": "Unable to Check for Updates.",
+        "messages": {
+            "checking": "Checking for Updates...",
+            "upToDate": "The Client is Up-to-Date.",
+            "error": "Unable to Check for Updates."
+        },
         "updateAvailableDialog": {
             "title": "A New Update is Available!",
-            "message": "v{%s} is available!\nYou're using v{%s}\n\nDo you wish to update now?",
-            "options": "noYes"
+            "message": "v{%s} is available! Do you wish to update now?",
+            "options": {
+                "no": "No",
+                "yes": "Yes"
+            }
         }
     }
 }

@@ -43,6 +43,18 @@ func setGlobalVariables() {
 
 	variables.TemporaryDirectory = os.TempDir()
 
+	roamingAppDataDirectory, roamingAppDataDirectoryError := os.UserConfigDir()
+
+	if roamingAppDataDirectoryError != nil {
+		logging.Critical("Global Variables Setter", "Couldn't get Roaming AppData directory: %s", roamingAppDataDirectoryError)
+
+		displayCriticalErrorDialog("Couldn't get Roaming AppData directory.")
+	}
+
+	variables.RoamingAppDataDirectory = roamingAppDataDirectory
+
+	variables.DataDirectory = fmt.Sprintf("%s/flufbird", variables.RoamingAppDataDirectory)
+
 	variables.ClientVersion = "1.0.0-a.1"
 
 	variables.ApplicationData = fmt.Sprintf("%s/application", data)
@@ -110,13 +122,11 @@ func checkInstances(temporaryDirectory string) {
 	logging.Information("Instances Checker", "File locked.")
 }
 
-func checkUpdates(currentVersion string, route string) (bool, error) {
+func checkUpdates(currentVersion string, route string) (bool, string, error) {
 	response, requestError := variables.HttpClient.Get(fmt.Sprintf("%s/latest_version", route))
 
 	if requestError != nil {
-		logging.Information("Update Checker", "Couldn't send request: %s", requestError)
-
-		return false, requestError
+		return false, "", requestError
 	}
 
 	defer response.Body.Close()
@@ -124,28 +134,36 @@ func checkUpdates(currentVersion string, route string) (bool, error) {
 	body, readError := io.ReadAll(response.Body)
 
 	if readError != nil {
-		logging.Information("Update Checker", "Couldn't read response: %s", readError)
-
-		return false, readError
+		return false, "", readError
 	}
 
 	data, parseError := gabs.ParseJSON(body)
 
 	if parseError != nil {
-		logging.Information("Update Checker", "Couldn't parse response data: %s", parseError)
-
-		return false, parseError
+		return false, "", parseError
 	}
 
-	return currentVersion != data.Path("latestVersion").Data().(string), nil
+	if !data.Path("successful").Data().(bool) {
+		return false, "", fmt.Errorf(data.Path("error").Data().(string))
+	}
+
+	latestVersion := data.Path("data.latestVersion").Data().(string)
+
+	return currentVersion != latestVersion, latestVersion, nil
 }
 
 func updateChecker(currentVersion string, route string) {
 	logging.Information("Update Checker (Backend)", "Checking for updates at %s", route)
 
 	for {
-		if newUpdateAvailable, _ := checkUpdates(currentVersion, route); newUpdateAvailable {
-			logging.Information("Update Checker (Backend)", "New update available.")
+		newUpdateAvailable, latestVersion, _error := checkUpdates(currentVersion, route)
+
+		if _error != nil {
+			logging.Error("Update Checker (Backend)", "Unable to check for updates: %s", _error)
+		}
+
+		if newUpdateAvailable {
+			logging.Information("Update Checker (Backend)", "New update available (v%s).", latestVersion)
 
 			displayUpdateDialog()
 
@@ -184,6 +202,4 @@ func startBackend() {
 	}
 
 	buildFrontend()
-
-	// go updateChecker(clientVersion, fmt.Sprintf("%s/update", variables.Api))
 }
