@@ -8,10 +8,11 @@ import (
 
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"runtime"
 	"time"
+
+	"net/http"
 
 	"github.com/juju/fslock"
 
@@ -199,6 +200,12 @@ func startBackend() {
 
 	if !variables.Development {
 		checkInstances(variables.TemporaryDirectory)
+	}
+
+	_, _error := os.Stat(variables.DataDirectory)
+
+	if os.IsNotExist(_error) {
+		os.Mkdir(variables.DataDirectory, 0777)
 	}
 
 	buildFrontend()
