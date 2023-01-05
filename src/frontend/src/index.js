@@ -1,6 +1,6 @@
 import {
     GetLanguageData_,
-} from "../wailsjs/go/main/Application"; // this path is only for the ide features, this path gets replaced in the assets server handler
+} from "../wailsjs/go/main/Application"; // this path is only for the ide features, itll get replaced in the assets server handler
 
 const $ = (query, _array) => {
 	let results = document.querySelectorAll(query);
@@ -10,57 +10,53 @@ const $ = (query, _array) => {
     return results;
 };
 
-const sleep = duration => new Promise(resolve => setTimeout(resolve, duration * 1000));
+const setLanguageData = (element, key) => GetLanguageData_(key).then((value) => element.innerText = value);
 
 window.runtime.EventsOnce("domReady", () => $(".container", false).style.display = "block");
 
 const languageAttribute = "data-language";
 const languageElements = $(`[${languageAttribute}]`, true);
 
-for (let element = 0; element < languageElements.length; element++) {
-    GetLanguageData_(languageElements[element].getAttribute(languageAttribute))
-        .then(
-            (value) => languageElements[element].innerText = value,
-            (_) => {},
-        );
+for (let index = 0; index < languageElements.length; index++) {
+    const element = languageElements[index];
+
+    setLanguageData(element, element.getAttribute(languageAttribute));
 }
 
-const checkedUpdates = false;
 const updateCheckerMessage = $(".update-checker .message");
-const updateCheckerSleepDuration = 2;
+const updateCheckerEventNames = ["startupUpdateCheckerError", "startupUpdateCheckerUpToDate", "startupUpdateCheckerUpdateAvailable"];
 
-const setUpdateCheckerMessage = (key) => {
-    GetLanguageData_(key)
-        .then(
-            (value) => updateCheckerMessage.innerText = value,
-            (_) => {},
-        );
-};
+const setUpdateCheckerMessage = (key) => setLanguageData(updateCheckerMessage, key);
+const unlistenStartUpUpdateCheckerEvents = () => window.runtime.EventsOff(updateCheckerEventNames[0], updateCheckerEventNames[1], updateCheckerEventNames[2]);
 
 setUpdateCheckerMessage("update.messages.checking");
 
-// TODO: unlisten these events after one triggers
-window.runtime.EventsOnce("startupUpdateCheckerError", async () => {
+// TODO: sleep for 2 seconds after an event
+window.runtime.EventsOnce(updateCheckerEventNames[0], async () => {
+    unlistenStartUpUpdateCheckerEvents();
+
     updateCheckerMessage.style.color = "rgb(255, 100, 100)";
     setUpdateCheckerMessage("update.messages.error");
-
-    await sleep(updateCheckerSleepDuration);
 });
-window.runtime.EventsOnce("startupUpdateCheckerUpToDate", async () => {
+window.runtime.EventsOnce(updateCheckerEventNames[1], async () => {
+    unlistenStartUpUpdateCheckerEvents();
+
     updateCheckerMessage.style.color = "rgb(100, 255, 100)";
     setUpdateCheckerMessage("update.messages.upToDate");
-
-    await sleep(updateCheckerSleepDuration);
 });
-window.runtime.EventsOnce("startupUpdateCheckerUpdateAvailable", () => { // TODO: latestversion argument
-    console.log("update available");
+window.runtime.EventsOnce(updateCheckerEventNames[2], async (latestVersion) => {
+    unlistenStartUpUpdateCheckerEvents();
+
+    console.log("update available" + latestVersion);
 
     // TODO: hide app & ask user, if accepted, redirect; else, show app when started
 });
 
 window.runtime.EventsEmit("contentLoaded");
 
-// TODO: wait until checkedUpdates is true
+// TODO: block until updates are checked
+
+$(".update-checker").remove();
 
 console.log("start app");
 

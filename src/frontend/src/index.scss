@@ -78,6 +78,7 @@ a {
     justify-content: center;
     align-items: center;
     height: 100%;
+    word-break: break-all;
     user-select: none;
     pointer-events: none;
     gap: 50px;
@@ -90,7 +91,12 @@ a {
     }
 
     .message {
+        $padding: 15px;
+
+        text-align: center;
         font-size: 17.5px;
         transition: color 0.15s ease-in-out;
+        padding-left: $padding;
+        padding-right: $padding;
     }
 }

@@ -26,7 +26,7 @@ func (application *Application) onStartup(context context.Context) {
 
 	application.context = context
 
-	setupEvents(application.context)
+	go setupEvents(application.context)
 }
 
 func (application *Application) onDomReady(_ context.Context) {
