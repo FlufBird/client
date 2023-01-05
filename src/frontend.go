@@ -22,35 +22,31 @@ func createApplication() *Application {
 }
 
 func (application *Application) onStartup(context context.Context) {
-	logging.Information("Frontend", "Application started up.")
+	logging.Information("Frontend", "Frontend started up.")
 
 	application.context = context
 
 	go setupEvents(application.context)
 }
 
-func (application *Application) onDomReady(_ context.Context) {
-	logging.Information("Frontend", "Frontend's DOM is ready.")
-
-	runtime.EventsEmit(application.context, "domReady")
-
-	runtime.WindowCenter(application.context)
-	runtime.WindowShow(application.context)
-}
-
 func setupEvents(context context.Context) {
-	contentLoaded := false
+	ready := false
 
-	runtime.EventsOnce(context, "contentLoaded", func(_ ...interface{}) {contentLoaded = true})
+	runtime.EventsOnce(context, "ready", func(_ ...interface{}) {
+		ready = true
+
+		runtime.WindowCenter(context)
+		runtime.WindowShow(context)
+	})
 
 	for {
-		if contentLoaded {
-			logging.Information("Frontend", "Frontend's content is loaded.")
+		if ready {
+			logging.Information("Frontend", "Frontend is ready.")
 
 			break
 		}
 
-		time.Sleep(3 * time.Second)
+		time.Sleep(2 * time.Second)
 	}
 
 	newUpdateAvailable, latestVersion, checkUpdatesError := checkUpdates(variables.ClientVersion, fmt.Sprintf("%s/update", variables.Api))
@@ -59,16 +55,12 @@ func setupEvents(context context.Context) {
 		logging.Error("Update Checker (Frontend)", "Unable to check for updates: %s", checkUpdatesError)
 
 		runtime.EventsEmit(context, "startupUpdateCheckerError")
-	}
-
-	if newUpdateAvailable {
+	} else if newUpdateAvailable {
 		logging.Information("Update Checker (Frontend)", "New update available (v%s).", latestVersion)
 
 		runtime.EventsEmit(context, "startupUpdateCheckerUpdateAvailable", []interface{}{latestVersion})
 	} else {
 		logging.Information("Update Checker (Frontend)", "Client is up-to-date (v%s).", variables.ClientVersion)
-
-		runtime.EventsEmit(context, "startupUpdateCheckerUpToDate")
 	}
 
 	// go updateChecker(clientVersion, fmt.Sprintf("%s/update", variables.Api))

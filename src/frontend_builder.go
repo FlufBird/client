@@ -72,25 +72,22 @@ func buildFrontend() {
 
 	application := createApplication()
 
-	const width int = 300;
-	const height int = 375;
+	const width int = 800;
+	const height int = 600;
 
 	_error := wails.Run(&options.App{ // TODO: icon
+		Title: "FlufBird",
+
 		Width: width,
 		Height: height,
 
 		MinWidth: width,
 		MinHeight: height,
 
-		MaxWidth: width,
-		MaxHeight: height,
-
-		Frameless: true,
-
 		StartHidden: true,
 
 		Windows: &windows.Options{
-			DisableFramelessWindowDecorations: true,
+			Theme: windows.Dark,
 			WebviewUserDataPath: fmt.Sprintf("%s/webview_flufbird", variables.RoamingAppDataDirectory),
 		},
 		Linux: &linux.Options{
@@ -103,7 +100,6 @@ func buildFrontend() {
 		},
 
 		OnStartup: application.onStartup,
-		OnDomReady: application.onDomReady,
 
 		Debug: options.Debug{
 			OpenInspectorOnStartup: true,

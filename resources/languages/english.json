@@ -1,18 +1,17 @@
 {
     "general": {
-        "serverOnMaintenance": "The server is undergoing maintenance, come back later!",
-        "onlyOneInstance": {
+        "serverOnMaintenance": "The server is undergoing maintenance, check back later!",
+        "onlyOneInstanceDialog": {
             "title": "There is Already Another Instance of FlufBird Running",
             "message": "Another instance of FlufBird is already running, only 1 instance of FlufBird can be running at a time!"
         }
     },
     "update": {
-        "messages": {
-            "checking": "Checking for Updates...",
-            "upToDate": "The Client is Up-to-Date.",
-            "error": "Unable to Check for Updates."
+        "error": {
+            "title": "Unable to Check for Updates",
+            "message": "Something went wrong while attempting to check for updates."
         },
-        "updateAvailableDialog": {
+        "available": {
             "title": "A New Update is Available!",
             "message": "v{%s} is available! Do you wish to update now?",
             "options": {

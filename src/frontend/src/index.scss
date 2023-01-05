@@ -1,22 +1,6 @@
 $color-scheme-1: rgb(37, 131, 200);
 $color-scheme-2: rgb(35, 163, 255);
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    background-color: rgb(63, 63, 63);
-    overflow: hidden;
-    --wails-draggable: drag;
-}
-
-a {
-    text-decoration: none;
-}
-
 @font-face {
     font-family: poppins_regular;
     src: url("resources/assets/fonts/poppins_regular.ttf");
@@ -47,8 +31,22 @@ a {
     src: url("resources/assets/fonts/consolas.ttf");
 }
 
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: rgb(63, 63, 63);
+    overflow: hidden;
+}
+
+a {
+    text-decoration: none;
+} 
+
 .container {
-    display: none;
     color: white;
     font-family: poppins_regular;
     width: 100%;
@@ -70,33 +68,4 @@ a {
 
 .loader {
     animation: loader 1.5s cubic-bezier(0.77, 0, 0.45, 1) reverse infinite;
-}
-
-.update-checker {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    word-break: break-all;
-    user-select: none;
-    pointer-events: none;
-    gap: 50px;
-
-    .loader {
-        $size: 105px;
-
-        width: $size;
-        height: $size;
-    }
-
-    .message {
-        $padding: 15px;
-
-        text-align: center;
-        font-size: 17.5px;
-        transition: color 0.15s ease-in-out;
-        padding-left: $padding;
-        padding-right: $padding;
-    }
 }

@@ -12,8 +12,6 @@ const $ = (query, _array) => {
 
 const setLanguageData = (element, key) => GetLanguageData_(key).then((value) => element.innerText = value);
 
-window.runtime.EventsOnce("domReady", () => $(".container", false).style.display = "block");
-
 const languageAttribute = "data-language";
 const languageElements = $(`[${languageAttribute}]`, true);
 
@@ -23,41 +21,28 @@ for (let index = 0; index < languageElements.length; index++) {
     setLanguageData(element, element.getAttribute(languageAttribute));
 }
 
-const updateCheckerMessage = $(".update-checker .message");
-const updateCheckerEventNames = ["startupUpdateCheckerError", "startupUpdateCheckerUpToDate", "startupUpdateCheckerUpdateAvailable"];
+let updatesChecked = false;
+const updateCheckerEventNames = ["startupUpdateCheckerError", "startupUpdateCheckerUpdateAvailable"];
 
-const setUpdateCheckerMessage = (key) => setLanguageData(updateCheckerMessage, key);
-const unlistenStartUpUpdateCheckerEvents = () => window.runtime.EventsOff(updateCheckerEventNames[0], updateCheckerEventNames[1], updateCheckerEventNames[2]);
+const unlistenStartUpUpdateCheckerEvents = () => window.runtime.EventsOff(updateCheckerEventNames[0], updateCheckerEventNames[1]);
 
-setUpdateCheckerMessage("update.messages.checking");
-
-// TODO: sleep for 2 seconds after an event
 window.runtime.EventsOnce(updateCheckerEventNames[0], async () => {
     unlistenStartUpUpdateCheckerEvents();
 
-    updateCheckerMessage.style.color = "rgb(255, 100, 100)";
-    setUpdateCheckerMessage("update.messages.error");
-});
-window.runtime.EventsOnce(updateCheckerEventNames[1], async () => {
-    unlistenStartUpUpdateCheckerEvents();
+    // TODO: ask user whether to continue or not
 
-    updateCheckerMessage.style.color = "rgb(100, 255, 100)";
-    setUpdateCheckerMessage("update.messages.upToDate");
+    updatesChecked = true;
 });
 window.runtime.EventsOnce(updateCheckerEventNames[2], async (latestVersion) => {
     unlistenStartUpUpdateCheckerEvents();
 
-    console.log("update available" + latestVersion);
+    // TODO: ask user, if accepted, redirect
 
-    // TODO: hide app & ask user, if accepted, redirect; else, show app when started
+    updatesChecked = true;
 });
-
-window.runtime.EventsEmit("contentLoaded");
 
 // TODO: block until updates are checked
 
-$(".update-checker").remove();
-
-console.log("start app");
+window.runtime.EventsEmit("ready");
 
 // TODO: start app
