@@ -39,7 +39,7 @@ func setGlobalVariables() {
 			data = "data"
 			variables.Resources = "resources"
 
-			server = "https://flufbird.is-an.app"
+			server = "https://flufbird-api.deta.dev"
 	}
 
 	variables.TemporaryDirectory = os.TempDir()
@@ -61,9 +61,9 @@ func setGlobalVariables() {
 	variables.ApplicationData = fmt.Sprintf("%s/application", data)
 	variables.UserData = fmt.Sprintf("%s/user", data)
 
-	variables.ApiVersion = "1"
+	apiVersion := "1"
 
-	variables.Api = fmt.Sprintf("%s/api/v%s", server, variables.ApiVersion)
+	variables.Api = fmt.Sprintf("%s/v%s", server, apiVersion)
 
 	languages, languagesError := gabs.ParseJSONFile(fmt.Sprintf("%s/languages.json", variables.ApplicationData))
 
