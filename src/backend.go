@@ -123,16 +123,6 @@ func checkInstances() {
 	logging.Information("Instances Checker", "File locked.")
 }
 
-func setupDataDirectory() {
-	_, _error := os.Stat(variables.DataDirectory)
-
-	if os.IsNotExist(_error) {
-		os.Mkdir(variables.DataDirectory, 0777)
-	}
-
-	// TODO: setup files
-}
-
 func checkUpdates(currentVersion string, route string) (bool, string, error) {
 	response, requestError := variables.HttpClient.Get(fmt.Sprintf("%s/latest_version", route))
 
@@ -202,17 +192,17 @@ func displayCriticalErrorDialog(message string) {
 func startBackend() {
 	setGlobalVariables()
 
-	if variables.Development {
-		fmt.Print("IN DEVELOPMENT MODE\n\n")
-	}
-
-	logging.Information("General", "OS: %s | Architecture: %s", runtime.GOOS, runtime.GOARCH)
+	logging.Information("General", "DEVELOPMENT BUILD | OS: %s | Architecture: %s", runtime.GOOS, runtime.GOARCH)
 
 	if !variables.Development {
 		checkInstances()
 	}
 
-	setupDataDirectory()
+	_, _error := os.Stat(variables.DataDirectory)
+
+	if os.IsNotExist(_error) {
+		os.Mkdir(variables.DataDirectory, 0777)
+	}
 
 	buildFrontend()
 }
