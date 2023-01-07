@@ -167,6 +167,8 @@ func updateChecker(currentVersion string, route string) {
 	logging.Information("Update Checker (Backend)", "Checking for updates at %s", route)
 
 	for {
+		time.Sleep(time.Minute)
+
 		newUpdateAvailable, latestVersion, _error := checkUpdates(currentVersion, route)
 
 		if _error != nil {
@@ -180,8 +182,6 @@ func updateChecker(currentVersion string, route string) {
 
 			break
 		}
-
-		time.Sleep(30 * time.Second)
 	}
 }
 
