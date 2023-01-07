@@ -8,7 +8,6 @@ import (
 
 	"fmt"
 	"context"
-	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -30,24 +29,12 @@ func (application *Application) onStartup(context context.Context) {
 }
 
 func setupEvents(context context.Context) {
-	ready := false
-
 	runtime.EventsOnce(context, "ready", func(_ ...interface{}) {
-		ready = true
+		logging.Information("Frontend", "Frontend is ready.")
 
 		runtime.WindowCenter(context)
 		runtime.WindowShow(context)
 	})
-
-	for {
-		if ready {
-			logging.Information("Frontend", "Frontend is ready.")
-
-			break
-		}
-
-		time.Sleep(2 * time.Second)
-	}
 
 	newUpdateAvailable, latestVersion, checkUpdatesError := checkUpdates(variables.ClientVersion, fmt.Sprintf("%s/update", variables.Api))
 

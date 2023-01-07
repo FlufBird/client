@@ -87,7 +87,6 @@ func buildFrontend() {
 		StartHidden: true,
 
 		Windows: &windows.Options{
-			Theme: windows.Dark,
 			WebviewUserDataPath: fmt.Sprintf("%s/webview_flufbird", variables.RoamingAppDataDirectory),
 		},
 		Linux: &linux.Options{

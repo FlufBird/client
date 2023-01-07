@@ -108,8 +108,8 @@ func setGlobalVariables() {
 	}
 }
 
-func checkInstances(temporaryDirectory string) {
-	lock := fslock.New(fmt.Sprintf("%s/%s", temporaryDirectory, "flufbird_one_instance_lock"))
+func checkInstances() {
+	lock := fslock.New(fmt.Sprintf("%s/%s", variables.TemporaryDirectory, "flufbird_one_instance_lock"))
 	_error := lock.TryLock()
 
 	if _error != nil {
@@ -121,6 +121,16 @@ func checkInstances(temporaryDirectory string) {
 	}
 
 	logging.Information("Instances Checker", "File locked.")
+}
+
+func setupDataDirectory() {
+	_, _error := os.Stat(variables.DataDirectory)
+
+	if os.IsNotExist(_error) {
+		os.Mkdir(variables.DataDirectory, 0777)
+	}
+
+	// TODO: setup files
 }
 
 func checkUpdates(currentVersion string, route string) (bool, string, error) {
@@ -199,14 +209,10 @@ func startBackend() {
 	logging.Information("General", "OS: %s | Architecture: %s", runtime.GOOS, runtime.GOARCH)
 
 	if !variables.Development {
-		checkInstances(variables.TemporaryDirectory)
+		checkInstances()
 	}
 
-	_, _error := os.Stat(variables.DataDirectory)
-
-	if os.IsNotExist(_error) {
-		os.Mkdir(variables.DataDirectory, 0777)
-	}
+	setupDataDirectory()
 
 	buildFrontend()
 }

@@ -1,5 +1,4 @@
-$color-scheme-1: rgb(37, 131, 200);
-$color-scheme-2: rgb(35, 163, 255);
+@use "variables" as *;
 
 @font-face {
     font-family: poppins_regular;
@@ -32,9 +31,15 @@ $color-scheme-2: rgb(35, 163, 255);
 }
 
 * {
+    color: white;
     padding: 0;
     margin: 0;
     box-sizing: border-box;
+
+    &::selection {
+        color: white;
+        background-color: $color-scheme-2;
+    }
 }
 
 body {
@@ -47,7 +52,6 @@ a {
 } 
 
 .container {
-    color: white;
     font-family: poppins_regular;
     width: 100%;
     height: 100vh;
@@ -57,7 +61,7 @@ a {
     }
 }
 
-@keyframes loader {
+@keyframes load {
     from {
         transform: rotate(0);
     }
@@ -67,5 +71,5 @@ a {
 }
 
 .loader {
-    animation: loader 1.5s cubic-bezier(0.77, 0, 0.45, 1) reverse infinite;
+    animation: load 1.5s cubic-bezier(0.77, 0, 0.45, 1) reverse infinite;
 }
