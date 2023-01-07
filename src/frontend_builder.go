@@ -38,7 +38,7 @@ func assetServerHandler(writer http.ResponseWriter, request *http.Request) { // 
 
 	prefix := ""
 
-	if strings.HasPrefix(asset, "resources") || strings.HasPrefix(asset, "data") {
+	if strings.HasPrefix(asset, "resources") {
 		if variables.Development {
 			prefix = ".."
 		}
