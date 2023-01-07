@@ -12,11 +12,10 @@ const $ = (query, _array) => {
 
 const setLanguageData = (element, key) => GetLanguageData_(key).then((value) => element.innerText = value);
 
-const languageAttribute = "data-language";
-const languageElements = $(`[${languageAttribute}]`, true);
+const languageElements = $("[data-language]", true);
 
 for (let index = 0; index < languageElements.length; index++) {
     const element = languageElements[index];
 
-    setLanguageData(element, element.getAttribute(languageAttribute));
+    setLanguageData(element, element.dataset.language);
 }
