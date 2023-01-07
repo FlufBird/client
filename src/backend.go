@@ -198,11 +198,5 @@ func startBackend() {
 		checkInstances()
 	}
 
-	_, _error := os.Stat(variables.DataDirectory)
-
-	if os.IsNotExist(_error) {
-		os.Mkdir(variables.DataDirectory, 0777)
-	}
-
 	buildFrontend()
 }
